@@ -1,0 +1,49 @@
+project_id = "vltveasdxtfvvqbzxzuf"
+
+[functions.customer-chat]
+verify_jwt = false
+
+[functions.add-courier]
+verify_jwt = true
+
+[functions.admin-dashboard]
+verify_jwt = true
+
+[functions.admin-database-maintenance]
+verify_jwt = true
+
+[functions.admin-database-backup]
+verify_jwt = true
+
+[functions.assess-risk]
+verify_jwt = true
+
+[functions.calculate-eta]
+verify_jwt = true
+
+[functions.check-geofence]
+verify_jwt = true
+
+[functions.check-order-fraud]
+verify_jwt = false
+
+[functions.courier-app]
+verify_jwt = true
+
+[functions.create-order]
+verify_jwt = false
+
+[functions.send-klaviyo-email]
+verify_jwt = true
+
+[functions.send-klaviyo-sms]
+verify_jwt = true
+
+[functions.track-access]
+verify_jwt = true
+
+[functions.update-order-status]
+verify_jwt = true
+
+[functions.update-all-products]
+verify_jwt = true
