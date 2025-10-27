@@ -282,7 +282,22 @@ const Checkout = () => {
         toast.error("Please enter your phone number");
         return;
       }
-      if (!guestEmail.trim() || !guestEmail.includes('@')) {
+
+      // Validate phone format (at least 10 digits)
+      const phoneDigits = guestPhone.replace(/\D/g, '');
+      if (phoneDigits.length < 10) {
+        toast.error("Please enter a valid phone number (at least 10 digits)");
+        return;
+      }
+
+      if (!guestEmail.trim()) {
+        toast.error("Please enter your email address");
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(guestEmail.trim())) {
         toast.error("Please enter a valid email address");
         return;
       }
