@@ -87,7 +87,7 @@ export function AdminAlerts() {
       .from("gps_anomalies")
       .select(`
         *,
-        courier:couriers(full_name, phone)
+        courier:couriers(id, phone)
       `)
       .eq("resolved", false)
       .order("detected_at", { ascending: false })
