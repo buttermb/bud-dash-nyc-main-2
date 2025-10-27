@@ -124,7 +124,14 @@ export default function IDVerificationUpload() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="idType">ID Type *</Label>
-            <Select value={formData.idType} onValueChange={(value) => setFormData({ ...formData, idType: value })}>
+            <Select
+              value={formData.idType || ""}
+              onValueChange={(value) => {
+                if (value) {
+                  setFormData({ ...formData, idType: value });
+                }
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select ID type" />
               </SelectTrigger>
