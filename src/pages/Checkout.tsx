@@ -347,19 +347,34 @@ const Checkout = () => {
       let statusCode: number = 500;
 
       try {
-        // Use fetch directly for better error handling
+        // Use fetch with proper Supabase headers
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
         const functionUrl = `${supabaseUrl}/functions/v1/create-order`;
 
         const session = await supabase.auth.getSession();
         const authToken = session.data.session?.access_token;
 
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+          'x-client-info': 'supabase-js-web'
+        };
+
+        // Add auth header if user is logged in
+        if (authToken) {
+          headers['Authorization'] = `Bearer ${authToken}`;
+        }
+
+        console.log('Invoking Edge Function with headers:', {
+          hasAuthToken: !!authToken,
+          hasApiKey: !!supabaseAnonKey,
+          functionUrl
+        });
+
         const fetchResponse = await fetch(functionUrl, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-          },
+          headers,
           body: JSON.stringify(orderData)
         });
 
@@ -403,7 +418,17 @@ const Checkout = () => {
           error: fnError
         });
 
-        throw new Error(fnError.message || 'Failed to place order. Please try again.');
+        // Provide better error messages
+        let userMessage = fnError.message || 'Failed to place order. Please try again.';
+        if (statusCode === 401) {
+          userMessage = 'Authentication error. Please refresh and try again.';
+        } else if (statusCode === 403) {
+          userMessage = 'Access denied. Please try again later.';
+        } else if (statusCode === 500) {
+          userMessage = 'Server error. Please try again in a moment.';
+        }
+
+        throw new Error(userMessage);
       }
 
       const data = responseData;
