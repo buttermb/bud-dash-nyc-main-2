@@ -150,7 +150,7 @@ export default function AdminCouriers() {
                 className="pl-10"
               />
             </div>
-            <AddCourierDialog onSuccess={fetchCouriers} />
+            <AddCourierDialog onSuccess={refetch} />
           </div>
         </CardHeader>
         <CardContent>
