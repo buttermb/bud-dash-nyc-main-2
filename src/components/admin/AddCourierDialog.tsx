@@ -41,7 +41,6 @@ const courierSchema = z.object({
   vehicle_make: z.string().optional(),
   vehicle_model: z.string().optional(),
   vehicle_plate: z.string().optional(),
-  age_verified: z.boolean().default(true),
 });
 
 type CourierFormData = z.infer<typeof courierSchema>;
@@ -62,7 +61,6 @@ export const AddCourierDialog = ({ onSuccess }: { onSuccess: () => void }) => {
       vehicle_make: "",
       vehicle_model: "",
       vehicle_plate: "",
-      age_verified: true,
     },
   });
 
@@ -256,26 +254,6 @@ export const AddCourierDialog = ({ onSuccess }: { onSuccess: () => void }) => {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="age_verified"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Age Verified (21+)</FormLabel>
-                    <div className="text-sm text-muted-foreground">
-                      Confirm that the courier is 21 years or older
-                    </div>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
 
             <div className="flex justify-end gap-3 pt-4">
               <Button
