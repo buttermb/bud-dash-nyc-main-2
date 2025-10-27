@@ -92,7 +92,7 @@ export default function AvailableOrdersCard({ courierId, isOnline }: { courierId
       if (error) throw error;
       setOrders(data || []);
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error('Error fetching orders:', getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
