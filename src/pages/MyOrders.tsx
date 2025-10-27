@@ -14,6 +14,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { haptics } from "@/utils/haptics";
 import { EmptyState } from "@/components/EmptyState";
 import { OrderCardSkeleton } from "@/components/SkeletonLoader";
+import { getErrorMessage } from "@/utils/errorHandling";
 
 export default function MyOrders() {
   const { user } = useAuth();
