@@ -288,10 +288,10 @@ const AdminLiveOrders = () => {
                       </div>
                       {order.courier ? (
                         <div className="text-sm pl-6">
-                          <p className="font-medium">{order.courier.full_name}</p>
-                          <p className="text-muted-foreground">{order.courier.phone}</p>
+                          <p className="font-medium">{order.courier?.id || 'Unassigned'}</p>
+                          <p className="text-muted-foreground">{order.courier?.phone || 'N/A'}</p>
                           <p className="text-muted-foreground">
-                            {order.courier.vehicle_type} - {order.courier.vehicle_plate}
+                            {order.courier?.vehicle_type || 'Unknown'} {order.courier?.vehicle_plate ? `- ${order.courier.vehicle_plate}` : ''}
                           </p>
                           <Badge variant="outline" className="mt-1">
                             {order.courier.is_online ? "Online" : "Offline"}
