@@ -69,32 +69,22 @@ export const AddCourierDialog = ({ onSuccess }: { onSuccess: () => void }) => {
   const onSubmit = async (data: CourierFormData) => {
     setIsSubmitting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error("Not authenticated");
-      }
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/add-courier`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify(data),
+      const { data: responseData, error } = await supabase.functions.invoke('add-courier', {
+        body: data
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to add courier");
+      if (error) {
+        const errorMessage = error?.message || error?.error || "Failed to add courier";
+        throw new Error(errorMessage);
       }
 
-      const result = await response.json();
+      if (!responseData?.success) {
+        throw new Error(responseData?.error || "Failed to add courier");
+      }
 
       toast({
         title: "Success",
-        description: result.message || "Courier added successfully",
+        description: responseData.message || "Courier added successfully",
       });
 
       form.reset();
