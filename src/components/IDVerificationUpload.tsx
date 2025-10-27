@@ -86,8 +86,11 @@ export default function IDVerificationUpload() {
       toast.success("ID verification submitted! We'll review it within 24 hours.");
       setSubmitted(true);
     } catch (error: any) {
-      console.error("Verification error:", error);
-      toast.error("Failed to submit verification");
+      console.error("Verification error:", {
+        message: error?.message || "Unknown error",
+        error: error
+      });
+      toast.error(error?.message || "Failed to submit verification");
     } finally {
       setLoading(false);
     }
