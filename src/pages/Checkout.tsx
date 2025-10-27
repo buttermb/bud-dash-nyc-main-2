@@ -326,8 +326,23 @@ const Checkout = () => {
         body: orderData
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      // Check for error from the function call itself
+      if (error) {
+        console.error('Edge Function error:', error);
+        throw new Error(`Order service error: ${error.message}`);
+      }
+
+      // Check for error in the response data
+      if (!data || data.error) {
+        console.error('Order creation error in response:', data?.error);
+        throw new Error(data?.error || 'Failed to create order');
+      }
+
+      // Validate we got an orderId back
+      if (!data.orderId) {
+        console.error('No orderId returned from Edge Function:', data);
+        throw new Error('Order created but no tracking ID returned');
+      }
 
       // Mark welcome discount as used if applied
       if (welcomeDiscount && user?.id) {
