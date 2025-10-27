@@ -52,10 +52,7 @@ export const useETATracking = (orderId: string | null) => {
       } catch (functionError: any) {
         const errorMsg = functionError?.message || String(functionError) || 'Unknown error';
         const errorCode = functionError?.code || 'UNKNOWN';
-        console.warn('ETA calculation via function failed, trying direct database query:', {
-          message: errorMsg,
-          code: errorCode
-        });
+        console.warn('ETA calculation via function failed, trying direct database query:', errorMsg);
 
         // Fallback: Load ETA directly from database
         const { data: orderData, error: queryError } = await supabase
@@ -65,11 +62,19 @@ export const useETATracking = (orderId: string | null) => {
           .single();
 
         if (queryError) {
-          const dbErrorMsg = queryError?.message || String(queryError) || 'Database query failed';
-          console.error('Failed to fetch ETA from database:', {
-            message: dbErrorMsg,
-            code: queryError?.code || 'DB_ERROR'
-          });
+          let dbErrorMsg = 'Database query failed';
+          if (typeof queryError === 'object' && queryError !== null) {
+            if ('message' in queryError) {
+              dbErrorMsg = queryError.message;
+            } else if ('error' in queryError) {
+              dbErrorMsg = String(queryError.error);
+            } else {
+              dbErrorMsg = JSON.stringify(queryError);
+            }
+          } else {
+            dbErrorMsg = String(queryError);
+          }
+          console.error('Failed to fetch ETA from database:', dbErrorMsg);
           throw new Error(`Unable to calculate ETA: ${dbErrorMsg}`);
         }
 
@@ -82,13 +87,17 @@ export const useETATracking = (orderId: string | null) => {
         }
       }
     } catch (error: any) {
-      const errorMsg = error?.message || String(error) || 'Unknown ETA calculation error';
-      const errorCode = error?.code || 'UNKNOWN';
-      console.error('ETA calculation error:', {
-        message: errorMsg,
-        code: errorCode,
-        details: errorMsg
-      });
+      let errorMsg = 'Unknown ETA calculation error';
+      if (typeof error === 'object' && error !== null) {
+        if ('message' in error) {
+          errorMsg = error.message;
+        } else {
+          errorMsg = JSON.stringify(error);
+        }
+      } else if (error) {
+        errorMsg = String(error);
+      }
+      console.error('ETA calculation error:', errorMsg);
 
       // Silent fail - ETA is optional
       setEta(null);
