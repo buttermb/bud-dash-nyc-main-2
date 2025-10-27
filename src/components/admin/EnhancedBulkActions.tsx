@@ -164,10 +164,10 @@ export function EnhancedBulkActions({
                       priceAdjustment === "increase"
                         ? 1 + percent / 100
                         : 1 - percent / 100;
-                    const newPrice = (product.price * multiplier).toFixed(2);
+                    const newPrice = ((product.price || 0) * multiplier).toFixed(2);
                     return (
                       <div key={product.id} className="text-sm mb-1">
-                        {product.name}: ${product.price} → ${newPrice}
+                        {product.name}: ${product.price || 0} → ${newPrice}
                       </div>
                     );
                   })}
