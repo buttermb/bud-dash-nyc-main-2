@@ -18,11 +18,13 @@ const OrderLookup = () => {
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!orderId.trim()) {
+
+    const searchTerm = orderId.trim();
+
+    if (!searchTerm) {
       toast({
         title: "Error",
-        description: "Please enter an order ID",
+        description: "Please enter an order ID or tracking code",
         variant: "destructive",
       });
       return;
@@ -31,28 +33,55 @@ const OrderLookup = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      console.log("Looking up order:", searchTerm);
+
+      // Try searching by tracking_code first (most common)
+      let { data, error } = await supabase
         .from("orders")
         .select("id, user_id, tracking_code")
-        .eq("id", orderId.trim())
+        .eq("tracking_code", searchTerm)
         .maybeSingle();
 
-      if (error) throw error;
+      // If not found by tracking code, try by ID
+      if (!data && !error) {
+        console.log("Not found by tracking code, trying by ID");
+        const { data: idData, error: idError } = await supabase
+          .from("orders")
+          .select("id, user_id, tracking_code")
+          .eq("id", searchTerm)
+          .maybeSingle();
+
+        data = idData;
+        error = idError;
+      }
+
+      if (error) {
+        console.error("Database error:", error);
+        throw new Error(error?.message || "Database error occurred");
+      }
 
       if (data) {
+        console.log("Order found:", data.id);
         navigate(`/track/${data.tracking_code || data.id}`);
       } else {
+        console.log("No order found for:", searchTerm);
         toast({
           title: "Order Not Found",
-          description: "No order found with this ID. Please check and try again.",
+          description: `No order found with ID or tracking code: ${searchTerm}. Please check and try again.`,
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error("Error looking up order:", error);
+    } catch (error: any) {
+      const errorMsg = error?.message || "Failed to lookup order";
+      console.error("Error looking up order:", {
+        message: errorMsg,
+        error: error,
+        searchTerm: searchTerm
+      });
+
       toast({
         title: "Error",
-        description: "Failed to lookup order. Please try again.",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
