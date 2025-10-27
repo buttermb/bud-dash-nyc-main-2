@@ -13,6 +13,7 @@ import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import { getDefaultWeight } from "@/utils/productHelpers";
 import { useProductViewCount } from "@/hooks/useProductViewCount";
 import { useGuestCart } from "@/hooks/useGuestCart";
+import { WishlistButton } from "@/components/WishlistButton";
 import { haptics } from "@/utils/haptics";
 import {
   Carousel,
@@ -196,7 +197,12 @@ const ProductCard = memo(function ProductCard({ product, onAuthRequired, stockLe
           </div>
         )}
 
-        <div className="relative h-72 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        {/* Wishlist Button */}
+        <div className="absolute top-2 md:top-3 left-2 md:left-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+          <WishlistButton productId={product.id} variant="icon" />
+        </div>
+
+        <div className="relative h-72 overflow-hidden group" onClick={(e) => e.stopPropagation()}>
           <Carousel className="w-full h-full">
             <CarouselContent>
               {productImages.map((image, index) => (

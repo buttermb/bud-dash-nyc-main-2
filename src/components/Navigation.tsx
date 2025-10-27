@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, ShoppingCart, User } from "lucide-react";
+import { Menu, ShoppingCart, User, Heart } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,12 +21,14 @@ import ThemeToggle from "./ThemeToggle";
 import NYMLogo from "./NYMLogo";
 import MobileBottomNav from "./MobileBottomNav";
 import { useGuestCart } from "@/hooks/useGuestCart";
+import { useWishlist } from "@/hooks/useWishlist";
 import { SearchBar } from "./SearchBar";
 import { haptics } from "@/utils/haptics";
 
 const Navigation = () => {
   const { user, signOut } = useAuth();
   const { getGuestCartCount } = useGuestCart();
+  const { count: wishlistCount } = useWishlist();
   const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
@@ -243,6 +245,15 @@ const Navigation = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => navigate("/my-orders")}>
                       My Orders
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/wishlist")}>
+                      <Heart className="mr-2 h-4 w-4" />
+                      My Wishlist
+                      {wishlistCount > 0 && (
+                        <Badge variant="secondary" className="ml-auto">
+                          {wishlistCount}
+                        </Badge>
+                      )}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/account/giveaway-entries")}>
                       My Entries
