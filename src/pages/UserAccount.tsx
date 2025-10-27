@@ -48,21 +48,22 @@ export default function UserAccount() {
           .from("profiles")
           .insert({
             user_id: user.id,
-            email: user.email,
-            full_name: user.user_metadata?.full_name || "",
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || "User",
             avatar_url: user.user_metadata?.avatar_url || null,
-            account_status: "active",
-            trust_level: "new",
-            total_orders: 0,
-            total_spending: 0,
-            risk_score: 0,
+            is_verified: false,
+            is_suspended: false,
           })
           .select()
           .single();
 
         if (error) {
-          console.error("Error creating profile:", error);
-          toast.error("Failed to create account profile");
+          console.error("Error creating profile:", {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          });
+          toast.error(`Failed to create account profile: ${error.message}`);
           setLoading(false);
           return;
         }
