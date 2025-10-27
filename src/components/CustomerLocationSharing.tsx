@@ -40,7 +40,11 @@ export const CustomerLocationSharing = ({ orderId, onLocationShared }: CustomerL
         })
         .eq("id", orderId);
 
-      if (error) throw error;
+      if (error) {
+        const errorMsg = error?.message || String(error) || "Failed to share location";
+        console.error("Supabase error:", { message: errorMsg, error });
+        throw new Error(errorMsg);
+      }
 
       setLocationEnabled(true);
       setSharing(true);
