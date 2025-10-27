@@ -240,7 +240,7 @@ export default function AdminProducts() {
     },
     onSuccess: async () => {
       await queryClient.refetchQueries({ queryKey: ["admin-products"] });
-      toast({ title: "��� Product deleted successfully" });
+      toast({ title: "✓ Product deleted successfully" });
     },
     onError: (error: any) => {
       toast({
@@ -442,6 +442,15 @@ export default function AdminProducts() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <Button
+          onClick={() => addTestProducts.mutate()}
+          variant="outline"
+          className="text-xs"
+          disabled={addTestProducts.isPending}
+        >
+          {addTestProducts.isPending ? "Adding..." : "Test Data"}
+        </Button>
       </div>
 
       {/* Bulk Actions */}
