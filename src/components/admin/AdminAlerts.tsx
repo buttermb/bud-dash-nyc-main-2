@@ -33,7 +33,7 @@ interface OverrideRequest {
   status: string;
   created_at: string;
   courier: {
-    full_name: string;
+    id: string;
     phone: string;
   };
   order: {
