@@ -160,7 +160,7 @@ const OrderConfirmation = () => {
               {order.order_items?.map((item: any) => (
                 <div key={item.id} className="flex justify-between items-center">
                   <div>
-                    <div className="font-medium">{item.product_name}</div>
+                    <div className="font-medium">{item.products?.name || item.product_name || 'Product'}</div>
                     <div className="text-sm text-muted-foreground">Qty: {item.quantity}</div>
                   </div>
                   <div className="font-medium">
