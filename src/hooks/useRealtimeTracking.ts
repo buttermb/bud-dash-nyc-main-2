@@ -19,7 +19,9 @@ export const useRealtimeTracking = (orderId: string | null) => {
   useEffect(() => {
     if (!orderId) return;
 
-    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "vltveasdxtfvvqbzxzuf";
+    // Extract project ID from Supabase URL
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const projectId = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || 'mtvwmyerntkhrcdnhahp';
     const wsUrl = `wss://${projectId}.supabase.co/functions/v1/realtime-tracking`;
 
     let ws: WebSocket | null = null;
