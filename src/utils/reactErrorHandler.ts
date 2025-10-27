@@ -60,21 +60,43 @@ export const setupGlobalErrorHandlers = () => {
 
   window.addEventListener('unhandledrejection', (event) => {
     event.preventDefault();
-    
+
+    const reason = event.reason instanceof Error
+      ? event.reason.message
+      : String(event.reason || 'Unknown error');
+
     if (import.meta.env.DEV) {
       console.error('Unhandled Promise Rejection:', event.reason);
     }
 
-    toast.error('An unexpected error occurred', {
-      description: 'Our team has been notified.',
-    });
+    // Only show toast if it's a real error, not just null/undefined
+    if (reason && reason !== 'undefined' && reason !== 'null') {
+      toast.error('An unexpected error occurred', {
+        description: 'Please try refreshing the page.',
+      });
+    }
   });
 
   window.addEventListener('error', (event) => {
+    // Don't prevent default for null errors
+    if (event.error === null || event.error === undefined) {
+      return;
+    }
+
     event.preventDefault();
-    
-    if (import.meta.env.DEV) {
-      console.error('Global Error:', event.error);
+
+    const message = event.error instanceof Error
+      ? event.error.message
+      : String(event.error);
+
+    if (import.meta.env.DEV && message) {
+      console.error('Global Error:', {
+        message: message,
+        error: event.error,
+        source: event.filename,
+        lineno: event.lineno,
+        colno: event.colno
+      });
     }
   });
 };
