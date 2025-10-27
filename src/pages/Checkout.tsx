@@ -311,9 +311,16 @@ const Checkout = () => {
     setLoading(true);
 
     try {
+      // Ensure we have email for all orders
+      if (!user?.email && !guestEmail) {
+        toast.error("Email address is required");
+        setLoading(false);
+        return;
+      }
+
       // Prepare order data for edge function - ensure all values are plain JSON serializable
       const orderData = {
-        userId: user?.id || null,
+        userId: user?.id ? String(user.id) : null,
         deliveryAddress: String(address),
         deliveryBorough: String(borough),
         paymentMethod: String(paymentMethod),
@@ -325,10 +332,10 @@ const Checkout = () => {
         dropoffLat: addressLat ? Number(addressLat) : null,
         dropoffLng: addressLng ? Number(addressLng) : null,
         customerName: user
-          ? String(user.email?.split('@')[0] || user.user_metadata?.name || '')
+          ? String(user.email?.split('@')[0] || user.user_metadata?.name || 'User')
           : String(guestName),
         customerPhone: user ? String(user.phone || '') : String(guestPhone),
-        customerEmail: user ? String(user.email || '') : String(guestEmail),
+        customerEmail: user ? String(user.email) : String(guestEmail),
         cartItems: cartItems.map(item => ({
           productId: String(item.product_id),
           quantity: Number(item.quantity) || 1,
