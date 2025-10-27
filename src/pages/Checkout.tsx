@@ -430,7 +430,11 @@ const Checkout = () => {
       // Provide user-friendly error messages based on the error
       let errorMessage = "Failed to place order";
 
-      if (error.message?.includes('Order service error')) {
+      if (error.message?.includes('Email')) {
+        errorMessage = "Please provide a valid email address";
+      } else if (error.message?.includes('Phone')) {
+        errorMessage = "Please provide a valid phone number";
+      } else if (error.message?.includes('Order service error')) {
         errorMessage = "Connection error: Please check your internet and try again";
       } else if (error.message?.includes('delivery address')) {
         errorMessage = "Please provide a valid delivery address";
