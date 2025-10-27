@@ -85,10 +85,14 @@ Deno.serve(async (req) => {
       console.error('Failed to parse request body:', parseError);
       throw new Error('Invalid request format');
     }
-    console.log('Creating order:', { 
-      userId: orderData.userId, 
+    console.log('Creating order:', {
+      userId: orderData.userId,
       itemCount: orderData.cartItems.length,
-      total: orderData.totalAmount 
+      total: orderData.totalAmount,
+      hasEmail: !!orderData.customerEmail,
+      hasPhone: !!orderData.customerPhone,
+      hasAddress: !!orderData.deliveryAddress,
+      hasBorough: !!orderData.deliveryBorough
     })
 
     // Validate required fields
