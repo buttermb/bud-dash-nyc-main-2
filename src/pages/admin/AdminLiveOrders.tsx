@@ -72,33 +72,49 @@ const AdminLiveOrders = () => {
 
   const fetchLiveOrders = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("admin-dashboard", {
-        body: { 
-          endpoint: "orders",
-          status: "accepted,confirmed,preparing,out_for_delivery",
-          limit: 100
-        }
-      });
+      // Use Promise.race with timeout to avoid hanging Edge Function calls
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Edge Function timeout')), 5000)
+      );
 
-      if (error) {
-        console.error("Error fetching orders:", error);
-        // Fallback to direct database query
-        const { data: fallbackOrders } = await supabase
-          .from('orders')
-          .select('*')
-          .in('status', ['accepted', 'confirmed', 'preparing', 'out_for_delivery'])
-          .order('created_at', { ascending: false })
-          .limit(100);
-        
-        if (fallbackOrders) {
-          setLiveOrders(fallbackOrders);
+      try {
+        const { data, error } = await Promise.race([
+          supabase.functions.invoke("admin-dashboard", {
+            body: {
+              endpoint: "orders",
+              status: "accepted,confirmed,preparing,out_for_delivery",
+              limit: 100
+            }
+          }),
+          timeoutPromise
+        ]) as any;
+
+        if (error) {
+          console.warn("Edge Function error, using fallback:", error?.message);
+          throw error;
         }
-        return;
+        if (data?.orders) {
+          setLiveOrders(data.orders);
+          return;
+        }
+      } catch (functionError: any) {
+        console.warn("Edge Function unavailable, using fallback query:", functionError?.message);
+        // Silently fall back to direct database query
       }
-      setLiveOrders(data?.orders || []);
+
+      // Fallback to direct database query
+      const { data: fallbackOrders } = await supabase
+        .from('orders')
+        .select('*')
+        .in('status', ['accepted', 'confirmed', 'preparing', 'out_for_delivery'])
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (fallbackOrders) {
+        setLiveOrders(fallbackOrders);
+      }
     } catch (error) {
       console.error("Failed to fetch live orders:", error);
-      // Fallback to direct database query
       try {
         const { data: fallbackOrders } = await supabase
           .from('orders')
