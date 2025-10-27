@@ -368,22 +368,16 @@ const Checkout = () => {
           hasError: !!response.error,
           hasData: !!response.data,
           error: response.error?.message,
-          errorStatus: (response.error as any)?.status,
-          errorContext: (response.error as any)?.context,
-          fullError: response.error,
-          fullData: response.data
+          data: response.data
         });
 
-        // Handle both error cases: response.error OR response.data with error property
-        let hasError = false;
-        let errorMessage = '';
-
+        // Handle invocation errors (network, etc.)
         if (response.error) {
-          hasError = true;
-          errorMessage = response.error.message || 'Edge Function returned an error';
           console.error('Edge Function invocation error:', response.error);
+          throw new Error(response.error.message || 'Order service error');
         }
 
+        // Get response data
         responseData = response.data;
 
         if (!responseData) {
@@ -391,15 +385,18 @@ const Checkout = () => {
           throw new Error('Order service returned empty response');
         }
 
-        // Check if response has error field (server returned error response)
+        console.log('Response data:', responseData);
+
+        // Check if response has error field (server returned error in body)
         if (responseData.error) {
-          hasError = true;
-          errorMessage = responseData.error;
           console.error('Order creation error in response:', responseData.error);
+          throw new Error(responseData.error);
         }
 
-        if (hasError) {
-          throw new Error(errorMessage);
+        // Check for success flag
+        if (!responseData.success) {
+          console.error('Order creation not successful:', responseData);
+          throw new Error(responseData.error || 'Order creation failed');
         }
 
         // Validate we got an orderId back
