@@ -164,8 +164,26 @@ Deno.serve(async (req) => {
       .single()
 
     if (orderError) {
-      console.error('Order creation error:', orderError)
-      throw new Error(`Failed to create order: ${orderError.message}`)
+      console.error('Order creation error:', {
+        message: orderError.message,
+        code: orderError.code,
+        details: orderError.details,
+        hint: orderError.hint,
+        status: orderError.status
+      })
+
+      // Provide better error messages based on the error type
+      if (orderError.code === '23505') {
+        throw new Error('Order record already exists')
+      } else if (orderError.code === '23502') {
+        throw new Error('Missing required field in order data')
+      } else if (orderError.message?.includes('customer_email')) {
+        throw new Error('Email address validation failed')
+      } else if (orderError.message?.includes('customer_phone')) {
+        throw new Error('Phone number validation failed')
+      } else {
+        throw new Error(`Failed to create order: ${orderError.message}`)
+      }
     }
 
     console.log('Order created:', order.id)
