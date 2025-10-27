@@ -57,9 +57,7 @@ export default function CourierHistory() {
           status,
           total_amount,
           delivered_at,
-          tip_amount,
-          merchants(business_name),
-          addresses(street, city)
+          tip_amount
         `)
         .eq('courier_id', courier.id)
         .gte('delivered_at', startDate.toISOString())
