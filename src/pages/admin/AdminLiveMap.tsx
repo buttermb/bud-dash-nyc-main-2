@@ -116,7 +116,6 @@ const AdminLiveMap = () => {
           ),
           couriers (
             id,
-            full_name,
             phone,
             vehicle_type,
             current_lat,
