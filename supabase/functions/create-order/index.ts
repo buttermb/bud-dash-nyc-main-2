@@ -245,20 +245,23 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : undefined
+
     console.error('Order creation failed:', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
+      message: errorMessage,
+      stack: errorStack
     })
 
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create order'
-
-    // Don't expose internal errors to client - provide generic message
+    // Provide appropriate error response
     const clientMessage = errorMessage.includes('relation') || errorMessage.includes('column')
       ? 'Order service temporarily unavailable. Please try again.'
       : errorMessage
 
+    // Always return 400 for user-facing errors (not 500)
     return new Response(
       JSON.stringify({
+        success: false,
         error: clientMessage,
         code: 'ORDER_CREATION_FAILED'
       }),
