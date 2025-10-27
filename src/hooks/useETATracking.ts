@@ -107,8 +107,8 @@ export const useETATracking = (orderId: string | null) => {
     // Initial ETA calculation
     calculateETA();
 
-    // Recalculate every 2 minutes
-    const interval = setInterval(() => calculateETA(), 120000);
+    // Recalculate every 5 minutes (reduced frequency for better performance)
+    const interval = setInterval(() => calculateETA(), 300000);
 
     return () => {
       supabase.removeChannel(channel);
