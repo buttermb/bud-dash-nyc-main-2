@@ -103,10 +103,10 @@ const AdminLiveOrders = () => {
         const { data: fallbackOrders } = await supabase
           .from('orders')
           .select('*')
-          .in('status', ['accepted', 'confirmed', 'preparing', 'out_for_delivery'])
+          .in('status', ['pending', 'processing', 'in_transit'])
           .order('created_at', { ascending: false })
           .limit(100);
-        
+
         if (fallbackOrders) {
           setLiveOrders(fallbackOrders);
         }
