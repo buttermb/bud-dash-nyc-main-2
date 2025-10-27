@@ -109,30 +109,20 @@ const AdminLiveMap = () => {
           order_items (
             id,
             product_id,
-            product_name,
             quantity,
             price
-          ),
-          couriers (
-            id,
-            full_name,
-            phone,
-            vehicle_type,
-            current_lat,
-            current_lng,
-            rating
           )
         `)
-        .in('status', ['confirmed', 'preparing', 'out_for_delivery'])
+        .in('status', ['pending', 'processing', 'in_transit'])
         .order('created_at', { ascending: false });
 
       if (ordersError) {
         console.error('Error fetching orders:', ordersError);
         throw ordersError;
       }
-      
+
       console.log('Fetched orders:', ordersData);
-      
+
       // Transform to match expected format with all fields
       const deliveriesData = ordersData?.map(order => ({
         id: order.id,
@@ -140,25 +130,21 @@ const AdminLiveMap = () => {
         order: {
           ...order,
           items: order.order_items || [],
-          customer_name: order.customer_name,
-          customer_phone: order.customer_phone,
           delivery_address: order.delivery_address,
           delivery_borough: order.delivery_borough,
-          total_amount: order.total_amount,
-          subtotal: order.subtotal,
-          delivery_fee: order.delivery_fee
+          total_amount: order.total_amount
         },
-        courier: order.couriers,
+        courier: null,
         created_at: order.created_at,
-        dropoff_lat: order.dropoff_lat,
-        dropoff_lng: order.dropoff_lng
+        dropoff_lat: null,
+        dropoff_lng: null
       })) || [];
-      
+
       console.log('Transformed deliveries:', deliveriesData);
-      
+
       const previousCount = deliveries.length;
       setDeliveries(deliveriesData);
-      
+
       if (deliveriesData && deliveriesData.length > previousCount) {
         playNotificationSound();
         addActivity('order', `New order received! Total active: ${deliveriesData.length}`, 'success');
