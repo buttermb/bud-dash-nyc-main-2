@@ -172,6 +172,20 @@ export default function AdminOrders() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="rounded-lg bg-destructive/10 border border-destructive/50 p-6">
+          <h2 className="text-lg font-semibold text-destructive mb-2">Error Loading Orders</h2>
+          <p className="text-sm text-destructive/90 mb-4">{error}</p>
+          <Button onClick={refetch} variant="outline">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="mb-8">
