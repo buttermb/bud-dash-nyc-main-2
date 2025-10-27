@@ -14,27 +14,64 @@ export const useETATracking = (orderId: string | null) => {
 
   const calculateETA = async (courierLat?: number, courierLng?: number) => {
     if (!orderId) return;
-    
+
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('calculate-eta', {
-        body: {
-          orderId,
-          courierLat: courierLat || null,
-          courierLng: courierLng || null
+      // Try to use Edge Function first
+      try {
+        const { data, error } = await supabase.functions.invoke('calculate-eta', {
+          body: {
+            orderId,
+            courierLat: courierLat || null,
+            courierLng: courierLng || null
+          }
+        });
+
+        if (error) throw error;
+
+        if (data) {
+          setEta({
+            eta_minutes: data.eta_minutes || 0,
+            distance_miles: parseFloat(data.distance_miles || '0'),
+            last_updated: new Date().toISOString(),
+            route: data.route
+          });
+          return;
         }
+      } catch (functionError: any) {
+        console.warn('ETA calculation via function failed, trying direct database query:', {
+          message: functionError?.message,
+          error: functionError
+        });
+
+        // Fallback: Load ETA directly from database
+        const { data: orderData, error: queryError } = await supabase
+          .from('orders')
+          .select('eta_minutes, eta_updated_at')
+          .eq('id', orderId)
+          .single();
+
+        if (queryError) {
+          console.error('Failed to fetch ETA from database:', queryError);
+          throw new Error('Unable to calculate ETA');
+        }
+
+        if (orderData?.eta_minutes) {
+          setEta({
+            eta_minutes: orderData.eta_minutes,
+            distance_miles: 0,
+            last_updated: orderData.eta_updated_at || new Date().toISOString()
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('ETA calculation error:', {
+        message: error?.message || String(error),
+        error: error
       });
 
-      if (error) throw error;
-
-      setEta({
-        eta_minutes: data.eta_minutes,
-        distance_miles: parseFloat(data.distance_miles),
-        last_updated: new Date().toISOString(),
-        route: data.route
-      });
-    } catch (error) {
-      console.error('ETA calculation error:', error);
+      // Silent fail - ETA is optional
+      setEta(null);
     } finally {
       setLoading(false);
     }
