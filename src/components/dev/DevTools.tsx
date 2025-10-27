@@ -277,8 +277,22 @@ export const DevTools = () => {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    navigator.clipboard.writeText(text).catch(() => {
+      // Fallback for browsers that don't allow clipboard access
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        toast.success('Copied to clipboard');
+      } catch (err) {
+        toast.error('Failed to copy to clipboard');
+      }
+      document.body.removeChild(textarea);
+    }).then(() => {
+      toast.success('Copied to clipboard');
+    });
   };
 
   const clearAll = () => {
