@@ -66,7 +66,20 @@ export const CustomerLocationSharing = ({ orderId, onLocationShared }: CustomerL
               .eq("id", orderId);
           },
           (error) => {
-            console.error("Location update failed:", error);
+            // Handle GeolocationPositionError in periodic updates
+            const errorMessage = error?.code === 1
+              ? "Location permission denied"
+              : error?.code === 2
+              ? "Network error retrieving location"
+              : error?.code === 3
+              ? "Location request timed out"
+              : "Failed to update location";
+
+            console.error("Location update failed:", {
+              message: errorMessage,
+              code: error?.code,
+              error: error
+            });
           },
           {
             enableHighAccuracy: true,
