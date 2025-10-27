@@ -59,7 +59,17 @@ serve(async (req) => {
       );
     }
 
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      console.error('Failed to parse request body:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const {
       full_name,
       email,
@@ -69,7 +79,7 @@ serve(async (req) => {
       vehicle_make,
       vehicle_model,
       vehicle_plate,
-      age_verified = true // Default to true for admin-added couriers
+      age_verified = true
     } = body;
 
     // Validate required fields
