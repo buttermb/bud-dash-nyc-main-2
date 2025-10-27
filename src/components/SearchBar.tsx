@@ -130,7 +130,7 @@ export function SearchBar({ variant = 'full' }: SearchBarProps) {
                     <div className="text-sm text-muted-foreground">{product.category}</div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <div className="font-bold text-primary">${product.price}</div>
+                    <div className="font-bold text-primary">${product.price || 0}</div>
                     {product.thca_percentage && (
                       <div className="text-xs text-muted-foreground">{product.thca_percentage}% THCA</div>
                     )}
