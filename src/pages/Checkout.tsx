@@ -343,9 +343,21 @@ const Checkout = () => {
         hasUserId: !!orderData.userId
       });
 
-      const response = await supabase.functions.invoke('create-order', {
-        body: orderData
-      });
+      let response: any;
+      try {
+        response = await supabase.functions.invoke('create-order', {
+          body: orderData
+        });
+      } catch (fnError: any) {
+        console.error('Edge Function invoke threw error:', {
+          name: fnError.name,
+          message: fnError.message,
+          status: fnError.status,
+          context: fnError.context
+        });
+
+        throw new Error(fnError.message || 'Failed to place order');
+      }
 
       console.log('Edge Function response:', {
         hasError: !!response.error,
@@ -362,18 +374,7 @@ const Checkout = () => {
           status: (response.error as any).status
         });
 
-        // Provide user-friendly error messages based on error type
-        let userMessage = 'Failed to place order. Please try again.';
-
-        if (response.error.name === 'FunctionsFetchError') {
-          userMessage = 'Order service is temporarily unavailable. Please try again in a moment.';
-        } else if (response.error.message?.includes('timeout')) {
-          userMessage = 'Order processing took too long. Please try again.';
-        } else if (response.error.message) {
-          userMessage = response.error.message;
-        }
-
-        throw new Error(userMessage);
+        throw new Error(response.error.message || 'Failed to place order');
       }
 
       const data = response.data;
