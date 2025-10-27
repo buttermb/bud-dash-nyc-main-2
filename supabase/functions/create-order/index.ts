@@ -80,27 +80,29 @@ Deno.serve(async (req) => {
       throw new Error('Cart is empty')
     }
 
-    // Validate email and phone for guest orders
+    // Validate contact information
+    console.log('Validating contact info:', {
+      isGuest: !orderData.userId,
+      hasEmail: !!orderData.customerEmail,
+      hasPhone: !!orderData.customerPhone,
+      customerName: orderData.customerName
+    })
+
+    // Email is required for all orders
+    if (!orderData.customerEmail || !orderData.customerEmail.trim()) {
+      throw new Error('Email address is required')
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(orderData.customerEmail.trim())) {
+      throw new Error('Invalid email address format')
+    }
+
+    // Phone is required for guest orders
     if (!orderData.userId) {
-      console.log('Validating guest order contact info:', {
-        hasEmail: !!orderData.customerEmail,
-        hasPhone: !!orderData.customerPhone,
-        customerName: orderData.customerName
-      })
-
-      // Guest checkout - email and phone are required
-      if (!orderData.customerEmail || !orderData.customerEmail.trim()) {
-        throw new Error('Email address is required for guest checkout')
-      }
-
-      // Basic email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(orderData.customerEmail)) {
-        throw new Error('Invalid email address format')
-      }
-
       if (!orderData.customerPhone || !orderData.customerPhone.trim()) {
-        throw new Error('Phone number is required for guest checkout')
+        throw new Error('Phone number is required')
       }
 
       // Basic phone validation (at least 10 digits)
@@ -108,9 +110,9 @@ Deno.serve(async (req) => {
       if (phoneDigits.length < 10) {
         throw new Error('Phone number must contain at least 10 digits')
       }
-
-      console.log('Guest contact info validated successfully')
     }
+
+    console.log('Contact info validated successfully')
 
     // Get merchant location data if not provided
     if (!orderData.pickupLat || !orderData.pickupLng) {
