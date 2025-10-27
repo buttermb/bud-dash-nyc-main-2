@@ -78,8 +78,7 @@ serve(async (req) => {
       vehicle_type,
       vehicle_make,
       vehicle_model,
-      vehicle_plate,
-      age_verified = true
+      vehicle_plate
     } = body;
 
     // Validate required fields
@@ -135,7 +134,6 @@ serve(async (req) => {
         vehicle_make,
         vehicle_model,
         vehicle_plate,
-        age_verified,
         is_active: true,
         is_online: false
       })
