@@ -324,9 +324,9 @@ const Checkout = () => {
         deliveryNotes: notes || undefined,
         dropoffLat: addressLat,
         dropoffLng: addressLng,
-        customerName: user ? undefined : guestName,
-        customerPhone: user ? undefined : guestPhone,
-        customerEmail: user ? undefined : guestEmail,
+        customerName: user ? user.email?.split('@')[0] || user.user_metadata?.name : guestName,
+        customerPhone: user ? user.phone : guestPhone,
+        customerEmail: user ? user.email : guestEmail,
         cartItems: cartItems.map(item => ({
           productId: item.product_id,
           quantity: item.quantity,
