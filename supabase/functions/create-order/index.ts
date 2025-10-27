@@ -80,6 +80,30 @@ Deno.serve(async (req) => {
       throw new Error('Cart is empty')
     }
 
+    // Validate email and phone for guest orders
+    if (!orderData.userId) {
+      // Guest checkout - email and phone are required
+      if (!orderData.customerEmail || !orderData.customerEmail.trim()) {
+        throw new Error('Email address is required')
+      }
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(orderData.customerEmail)) {
+        throw new Error('Please enter a valid email address')
+      }
+
+      if (!orderData.customerPhone || !orderData.customerPhone.trim()) {
+        throw new Error('Phone number is required')
+      }
+
+      // Basic phone validation (at least 10 digits)
+      const phoneDigits = orderData.customerPhone.replace(/\D/g, '')
+      if (phoneDigits.length < 10) {
+        throw new Error('Please enter a valid phone number (at least 10 digits)')
+      }
+    }
+
     // Get merchant location data if not provided
     if (!orderData.pickupLat || !orderData.pickupLng) {
       const { data: product, error: productError } = await supabaseClient
