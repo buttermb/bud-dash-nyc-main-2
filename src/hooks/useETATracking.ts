@@ -19,24 +19,35 @@ export const useETATracking = (orderId: string | null) => {
     try {
       // Try to use Edge Function first
       try {
-        const { data, error } = await supabase.functions.invoke('calculate-eta', {
-          body: {
-            orderId,
-            courierLat: courierLat || null,
-            courierLng: courierLng || null
-          }
-        });
-
-        if (error) throw error;
-
-        if (data) {
-          setEta({
-            eta_minutes: data.eta_minutes || 0,
-            distance_miles: parseFloat(data.distance_miles || '0'),
-            last_updated: new Date().toISOString(),
-            route: data.route
+        // Only invoke ETA function if we have courier coordinates
+        if (courierLat !== undefined && courierLng !== undefined && courierLat !== null && courierLng !== null) {
+          const { data, error } = await supabase.functions.invoke('calculate-eta', {
+            body: {
+              orderId,
+              courierLat,
+              courierLng
+            }
           });
-          return;
+
+          if (error) {
+            const errorMsg = error?.message || String(error) || 'Edge function error';
+            throw new Error(errorMsg);
+          }
+
+          if (data?.success) {
+            setEta({
+              eta_minutes: data.eta_minutes || 0,
+              distance_miles: parseFloat(data.distance_miles || '0'),
+              last_updated: new Date().toISOString(),
+              route: data.route
+            });
+            return;
+          } else if (data?.error) {
+            throw new Error(data.error);
+          }
+        } else {
+          // If no courier coordinates, skip edge function and go straight to database
+          throw new Error('Courier coordinates not available');
         }
       } catch (functionError: any) {
         const errorMsg = functionError?.message || String(functionError) || 'Unknown error';
