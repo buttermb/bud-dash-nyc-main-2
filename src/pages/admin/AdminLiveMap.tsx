@@ -737,7 +737,7 @@ const AdminLiveMap = () => {
                                     <div className="flex items-center gap-2">
                                       <Truck className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                       <span className="text-muted-foreground">
-                                        {delivery.courier.full_name}
+                                        {delivery.courier?.id || 'Unknown Courier'}
                                       </span>
                                     </div>
                                   )}
