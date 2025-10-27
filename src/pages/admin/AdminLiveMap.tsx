@@ -85,8 +85,7 @@ const AdminLiveMap = () => {
       const { data: couriersData, error: couriersError } = await supabase
         .from('couriers')
         .select('*')
-        .eq('is_online', true)
-        .eq('is_active', true);
+        .eq('is_online', true);
 
       if (couriersError) {
         console.error('Error fetching active couriers:', couriersError);
