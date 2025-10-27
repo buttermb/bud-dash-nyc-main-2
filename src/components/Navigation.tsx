@@ -258,7 +258,9 @@ const Navigation = () => {
                     <DropdownMenuItem onClick={() => navigate("/account/giveaway-entries")}>
                       My Entries
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Profile Settings</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/account")}>
+                      Profile Settings
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={async () => {
                       await signOut();
