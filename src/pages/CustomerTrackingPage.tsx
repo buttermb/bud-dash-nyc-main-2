@@ -355,28 +355,34 @@ export default function CustomerTrackingPage() {
             Order Details
           </h3>
           <div className="space-y-3">
-            {order.order_items.map((item) => (
-              <div key={item.id} className="flex justify-between items-center gap-3">
-                <div className="flex items-center space-x-3 flex-1 min-w-0">
-                  {item.product.image_url && (
-                    <img
-                      src={item.product.image_url}
-                      alt={item.product.name}
-                      className="w-10 h-10 md:w-12 md:h-12 object-cover rounded flex-shrink-0"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm md:text-base truncate">{item.product.name}</p>
-                    <p className="text-xs md:text-sm text-muted-foreground">Qty: {item.quantity}</p>
+            {order.order_items && order.order_items.length > 0 ? (
+              <>
+                {order.order_items.map((item: any) => (
+                  <div key={item.id} className="flex justify-between items-center gap-3">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      {item.product?.image_url && (
+                        <img
+                          src={item.product.image_url}
+                          alt={item.product?.name || "Product"}
+                          className="w-10 h-10 md:w-12 md:h-12 object-cover rounded flex-shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm md:text-base truncate">{item.product?.name || "Unknown Product"}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                      </div>
+                    </div>
+                    <p className="font-semibold text-sm md:text-base flex-shrink-0">${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</p>
                   </div>
+                ))}
+                <div className="border-t pt-3 flex justify-between font-bold text-base md:text-lg">
+                  <span>Total</span>
+                  <span>${(order.total_amount || 0).toFixed(2)}</span>
                 </div>
-                <p className="font-semibold text-sm md:text-base flex-shrink-0">${(item.price * item.quantity).toFixed(2)}</p>
-              </div>
-            ))}
-            <div className="border-t pt-3 flex justify-between font-bold text-base md:text-lg">
-              <span>Total</span>
-              <span>${order.total_amount.toFixed(2)}</span>
-            </div>
+              </>
+            ) : (
+              <p className="text-muted-foreground text-sm">No items in this order</p>
+            )}
           </div>
         </Card>
 
