@@ -121,35 +121,21 @@ export const AssignCourierDialog = ({
   const handleAutoAssign = async () => {
     setAssigning(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error("Not authenticated");
-      }
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/assign-courier`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('assign-courier', {
+        body: {
           orderId,
-          // Don't send courierId to trigger auto-assignment
-        }),
+        }
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to auto-assign courier");
+      if (error) {
+        throw new Error(error?.message || "Failed to auto-assign courier");
       }
-
-      const result = await response.json();
 
       toast({
         title: "Success",
-        description: `Nearest courier (${result.courier.full_name}) assigned automatically`,
+        description: data?.courier?.full_name
+          ? `Nearest courier (${data.courier.full_name}) assigned automatically`
+          : data?.message || "Courier assigned successfully",
       });
 
       onOpenChange(false);
