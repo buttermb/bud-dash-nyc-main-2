@@ -65,24 +65,41 @@ export default function CustomerTrackingPage() {
 
   const fetchOrder = async () => {
     try {
-      const { data, error } = await supabase.rpc("get_order_by_tracking_code", {
-        code: code,
+      console.log("Fetching order with tracking code:", code);
+
+      // Query orders table directly
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("tracking_code", code)
+        .single();
+
+      if (error) {
+        console.error("Error fetching order:", { error, code });
+        const errorMsg = error?.message || `Order not found with tracking code: ${code}`;
+        throw new Error(errorMsg);
+      }
+
+      if (!data) {
+        console.error("No order data returned for tracking code:", code);
+        throw new Error(`Order not found with tracking code: ${code}`);
+      }
+
+      console.log("Order found:", data);
+      setOrder(data as unknown as OrderTracking);
+
+      // Calculate distance if courier location available
+      if (data?.current_lat && data?.current_lng) {
+        // Courier location available
+      }
+    } catch (error: any) {
+      console.error("Error fetching order:", {
+        message: error?.message || String(error),
+        error: error
       });
 
-      if (error) throw error;
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        setOrder(data as unknown as OrderTracking);
-        
-        // Calculate distance if courier location available
-        const courierData = (data as any).courier;
-        if (courierData?.current_lat && courierData?.current_lng) {
-          // This would normally use customer location, but for now just showing courier is moving
-          // In production, you'd get customer's lat/lng from the order or their shared location
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching order:", error);
-      toast.error("Order not found");
+      const errorMsg = error?.message || `Order not found with tracking code: ${code}`;
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
       setRefreshing(false);
