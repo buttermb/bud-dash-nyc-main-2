@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { AddCourierDialog } from '@/components/admin/AddCourierDialog';
+import { useAdminCouriers } from '@/hooks/useAdminCouriers';
 
 interface Courier {
   id: string;
@@ -31,65 +32,10 @@ interface Courier {
 }
 
 export default function AdminCouriers() {
-  const [couriers, setCouriers] = useState<Courier[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-    
-    fetchCouriers();
-    
-    const setupChannel = async () => {
-      channel = supabase
-        .channel('couriers-changes', {
-          config: {
-            broadcast: { self: false },
-            presence: { key: '' }
-          }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'couriers' }, () => {
-          fetchCouriers();
-        })
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR') {
-            console.error('Failed to subscribe to couriers channel');
-          }
-        });
-    };
-
-    setupChannel();
-
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel).then(() => {
-          channel = null;
-        });
-      }
-    };
-  }, []);
-
-  const fetchCouriers = async () => {
-    try {
-      // Use optimized RPC function for instant fetch with today's earnings
-      const { data, error } = await supabase.rpc('get_couriers_with_daily_earnings');
-
-      if (error) throw error;
-
-      setCouriers((data as unknown as Courier[]) || []);
-    } catch (error) {
-      console.error('Error fetching couriers:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load couriers",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { couriers, loading, error, refetch } = useAdminCouriers();
 
   const toggleCourierStatus = async (courierId: string, currentStatus: boolean) => {
     try {
@@ -105,7 +51,7 @@ export default function AdminCouriers() {
         description: `Courier ${!currentStatus ? 'activated' : 'deactivated'}`
       });
 
-      await fetchCouriers();
+      await refetch();
     } catch (error: any) {
       toast({
         title: "Error",
