@@ -27,15 +27,17 @@ const AdminLogin = () => {
       if (authError) throw authError;
       if (!authData.session) throw new Error("No session returned");
 
-      // Check admin role directly from user_roles table
-      const { data: roleData, error: roleError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", authData.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
+      // Check admin role using RPC function (bypasses RLS)
+      const { data: isAdmin, error: adminCheckError } = await supabase
+        .rpc("is_admin", { check_user_id: authData.user.id });
 
-      if (roleError || !roleData) {
+      if (adminCheckError) {
+        console.error("Admin check error:", adminCheckError);
+        await supabase.auth.signOut();
+        throw new Error("Failed to verify admin access");
+      }
+
+      if (!isAdmin) {
         await supabase.auth.signOut();
         throw new Error("You don't have admin access");
       }
