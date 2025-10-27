@@ -37,9 +37,6 @@ export const useRealtimeOrders = (options: UseRealtimeOrdersOptions = {}) => {
         .from('orders')
         .select(`
           *,
-          merchants (business_name, address, phone),
-          addresses (street, city, state, zip_code),
-          couriers (full_name, phone, email, vehicle_type, current_lat, current_lng),
           order_items (
             id,
             quantity,
