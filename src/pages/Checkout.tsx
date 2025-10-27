@@ -344,69 +344,47 @@ const Checkout = () => {
       });
 
       let responseData: any;
-      let statusCode: number = 500;
 
       try {
-        // Use fetch with proper Supabase headers
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
-        const functionUrl = `${supabaseUrl}/functions/v1/create-order`;
+        console.log('Calling create-order via supabase.functions.invoke()');
 
-        const session = await supabase.auth.getSession();
-        const authToken = session.data.session?.access_token;
-
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          'apikey': supabaseAnonKey,
-          'x-client-info': 'supabase-js-web'
-        };
-
-        // Add auth header if user is logged in
-        if (authToken) {
-          headers['Authorization'] = `Bearer ${authToken}`;
-        }
-
-        console.log('Invoking Edge Function with headers:', {
-          hasAuthToken: !!authToken,
-          hasApiKey: !!supabaseAnonKey,
-          functionUrl
+        // Use the Supabase client's built-in function invocation
+        const response = await supabase.functions.invoke('create-order', {
+          body: orderData,
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
 
-        const fetchResponse = await fetch(functionUrl, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(orderData)
+        console.log('Edge Function invoke response:', {
+          hasError: !!response.error,
+          hasData: !!response.data,
+          error: response.error?.message,
+          errorStatus: (response.error as any)?.status
         });
 
-        statusCode = fetchResponse.status;
-
-        try {
-          responseData = await fetchResponse.json();
-        } catch (parseError) {
-          console.error('Failed to parse response:', parseError);
-          responseData = { error: 'Invalid response from order service' };
+        // If there's an invocation error (network, timeout, etc)
+        if (response.error) {
+          console.error('Edge Function invocation error:', response.error);
+          const errorMsg = response.error.message || 'Failed to place order';
+          throw new Error(errorMsg);
         }
 
-        console.log('Edge Function response:', {
-          statusCode,
-          responseData
-        });
+        responseData = response.data;
 
-        // Handle error responses (any non-2xx status)
-        if (!fetchResponse.ok) {
-          const errorMessage = responseData?.error || `Order service returned error ${statusCode}`;
-          console.error('Order creation failed:', { statusCode, error: errorMessage });
-          throw new Error(errorMessage);
+        // Check for error in the response data
+        if (!responseData) {
+          console.error('No data returned from Edge Function');
+          throw new Error('Order service returned empty response');
         }
 
-        // Check for error in successful response
-        if (responseData?.error) {
+        if (responseData.error) {
           console.error('Order creation error in response:', responseData.error);
           throw new Error(responseData.error);
         }
 
         // Validate we got an orderId back
-        if (!responseData?.orderId) {
+        if (!responseData.orderId) {
           console.error('No orderId returned from Edge Function:', responseData);
           throw new Error('Order created but no tracking ID returned');
         }
@@ -414,21 +392,10 @@ const Checkout = () => {
       } catch (fnError: any) {
         console.error('Edge Function call failed:', {
           message: fnError.message,
-          statusCode,
           error: fnError
         });
 
-        // Provide better error messages
-        let userMessage = fnError.message || 'Failed to place order. Please try again.';
-        if (statusCode === 401) {
-          userMessage = 'Authentication error. Please refresh and try again.';
-        } else if (statusCode === 403) {
-          userMessage = 'Access denied. Please try again later.';
-        } else if (statusCode === 500) {
-          userMessage = 'Server error. Please try again in a moment.';
-        }
-
-        throw new Error(userMessage);
+        throw new Error(fnError.message || 'Failed to place order. Please try again.');
       }
 
       const data = responseData;
@@ -749,7 +716,7 @@ const Checkout = () => {
                 {subtotal >= 100 && (
                   <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg">
                     <p className="text-sm font-semibold text-primary flex items-center gap-2">
-                      ✓ FREE delivery unlocked! 🎉
+                      ��� FREE delivery unlocked! 🎉
                     </p>
                     <p className="text-xs text-primary/80 mt-1">
                       No delivery fee on this order
