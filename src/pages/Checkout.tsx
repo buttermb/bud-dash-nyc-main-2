@@ -384,8 +384,28 @@ const Checkout = () => {
       
       navigate(`/order-confirmation?orderId=${data.orderId}`);
     } catch (error: any) {
-      console.error('Order error:', error);
-      toast.error(error.message || "Failed to place order");
+      console.error('Order placement error:', {
+        message: error.message,
+        error: error,
+        stack: error.stack
+      });
+
+      // Provide user-friendly error messages based on the error
+      let errorMessage = "Failed to place order";
+
+      if (error.message?.includes('Order service error')) {
+        errorMessage = "Connection error: Please check your internet and try again";
+      } else if (error.message?.includes('delivery address')) {
+        errorMessage = "Please provide a valid delivery address";
+      } else if (error.message?.includes('Cart is empty')) {
+        errorMessage = "Your cart is empty. Please add items before checkout";
+      } else if (error.message?.includes('tracking ID')) {
+        errorMessage = "Order was created but confirmation failed. Please check your orders";
+      } else {
+        errorMessage = error.message || "Failed to place order. Please try again";
+      }
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
