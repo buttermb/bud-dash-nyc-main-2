@@ -84,27 +84,35 @@ Deno.serve(async (req) => {
     }
 
     // Create order
+    const orderPayload = {
+      user_id: orderData.userId || null,
+      merchant_id: orderData.merchantId || null,
+      delivery_address: orderData.deliveryAddress,
+      delivery_borough: orderData.deliveryBorough,
+      payment_method: orderData.paymentMethod,
+      delivery_fee: orderData.deliveryFee,
+      subtotal: orderData.subtotal,
+      total_amount: orderData.totalAmount,
+      scheduled_delivery_time: orderData.scheduledDeliveryTime || null,
+      delivery_notes: orderData.deliveryNotes || null,
+      status: 'pending',
+      pickup_lat: orderData.pickupLat || null,
+      pickup_lng: orderData.pickupLng || null,
+      dropoff_lat: orderData.dropoffLat || null,
+      dropoff_lng: orderData.dropoffLng || null,
+      customer_name: orderData.customerName || null,
+      customer_phone: orderData.customerPhone || null,
+      customer_email: orderData.customerEmail || null,
+    }
+
+    console.log('Inserting order with payload:', {
+      ...orderPayload,
+      user_id: orderPayload.user_id ? 'set' : 'null'
+    })
+
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
-      .insert({
-        user_id: orderData.userId || null,
-        merchant_id: orderData.merchantId,
-        delivery_address: orderData.deliveryAddress,
-        delivery_borough: orderData.deliveryBorough,
-        payment_method: orderData.paymentMethod,
-        delivery_fee: orderData.deliveryFee,
-        subtotal: orderData.subtotal,
-        total_amount: orderData.totalAmount,
-        scheduled_delivery_time: orderData.scheduledDeliveryTime || null,
-        delivery_notes: orderData.deliveryNotes || null,
-        status: 'pending',
-        pickup_lat: orderData.pickupLat,
-        pickup_lng: orderData.pickupLng,
-        dropoff_lat: orderData.dropoffLat,
-        dropoff_lng: orderData.dropoffLng,
-        customer_name: orderData.customerName || null,
-        customer_phone: orderData.customerPhone || null,
-      })
+      .insert(orderPayload)
       .select()
       .single()
 
