@@ -311,28 +311,30 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Prepare order data for edge function
+      // Prepare order data for edge function - ensure all values are plain JSON serializable
       const orderData = {
-        userId: user?.id,
-        deliveryAddress: address,
-        deliveryBorough: borough,
-        paymentMethod,
-        deliveryFee,
-        subtotal,
-        totalAmount: total,
-        scheduledDeliveryTime: getScheduledDateTime(),
-        deliveryNotes: notes || undefined,
-        dropoffLat: addressLat,
-        dropoffLng: addressLng,
-        customerName: user ? user.email?.split('@')[0] || user.user_metadata?.name : guestName,
-        customerPhone: user ? user.phone : guestPhone,
-        customerEmail: user ? user.email : guestEmail,
+        userId: user?.id || null,
+        deliveryAddress: String(address),
+        deliveryBorough: String(borough),
+        paymentMethod: String(paymentMethod),
+        deliveryFee: Number(deliveryFee) || 0,
+        subtotal: Number(subtotal) || 0,
+        totalAmount: Number(total) || 0,
+        scheduledDeliveryTime: getScheduledDateTime() || null,
+        deliveryNotes: notes?.trim() || null,
+        dropoffLat: addressLat ? Number(addressLat) : null,
+        dropoffLng: addressLng ? Number(addressLng) : null,
+        customerName: user
+          ? String(user.email?.split('@')[0] || user.user_metadata?.name || '')
+          : String(guestName),
+        customerPhone: user ? String(user.phone || '') : String(guestPhone),
+        customerEmail: user ? String(user.email || '') : String(guestEmail),
         cartItems: cartItems.map(item => ({
-          productId: item.product_id,
-          quantity: item.quantity,
-          price: getItemPrice(item),
-          productName: item.products?.name || "",
-          selectedWeight: item.selected_weight || "unit"
+          productId: String(item.product_id),
+          quantity: Number(item.quantity) || 1,
+          price: Number(getItemPrice(item)) || 0,
+          productName: String(item.products?.name || ''),
+          selectedWeight: String(item.selected_weight || 'unit')
         }))
       };
 
