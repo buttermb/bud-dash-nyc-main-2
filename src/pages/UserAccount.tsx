@@ -156,11 +156,12 @@ export default function UserAccount() {
                       </span>
                       <span className="text-lg text-muted-foreground">/100</span>
                     </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Trust Level: <Badge className={getTrustLevelColor(profile.trust_level)}>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      <span>Trust Level:</span>
+                      <Badge className={`ml-2 ${getTrustLevelColor(profile.trust_level)}`}>
                         {profile.trust_level?.toUpperCase() || "NEW"}
                       </Badge>
-                    </p>
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Account Status</p>
