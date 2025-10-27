@@ -235,7 +235,7 @@ export default function AdminProducts() {
         .from("products")
         .delete()
         .eq("id", id);
-      
+
       if (error) throw error;
     },
     onSuccess: async () => {
@@ -245,6 +245,37 @@ export default function AdminProducts() {
     onError: (error: any) => {
       toast({
         title: "Failed to delete product",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const addTestProducts = useMutation({
+    mutationFn: async () => {
+      const testProducts = [
+        { name: "Premium OG Kush", category: "flower", price: 45, strain_type: "hybrid", thca_percentage: 22.5, cbd_content: 0.8, in_stock: true, is_active: true },
+        { name: "Sour Diesel", category: "flower", price: 50, strain_type: "sativa", thca_percentage: 24.2, cbd_content: 0.5, in_stock: true, is_active: true },
+        { name: "Indica Blend Pre-Rolls", category: "pre-rolls", price: 35, strain_type: "indica", thca_percentage: 18.5, cbd_content: 1.2, in_stock: true, is_active: true },
+        { name: "Chocolate Chip Cookies", category: "edibles", price: 15, strain_type: "hybrid", thca_percentage: 10.0, cbd_content: 0.0, in_stock: true, is_active: true },
+        { name: "Golden Concentrates", category: "concentrates", price: 60, strain_type: "sativa", thca_percentage: 75.0, cbd_content: 0.2, in_stock: true, is_active: true },
+        { name: "Berry Vape Cart", category: "vapes", price: 40, strain_type: "hybrid", thca_percentage: 85.0, cbd_content: 0.5, in_stock: true, is_active: true },
+      ];
+
+      const { error } = await supabase
+        .from("products")
+        .insert(testProducts);
+
+      if (error) throw error;
+      return testProducts;
+    },
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ["admin-products"] });
+      toast({ title: "✓ Test products added successfully", description: "6 test products have been added to your catalog" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to add test products",
         description: error.message,
         variant: "destructive"
       });
@@ -411,6 +442,15 @@ export default function AdminProducts() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <Button
+          onClick={() => addTestProducts.mutate()}
+          variant="outline"
+          className="text-xs"
+          disabled={addTestProducts.isPending}
+        >
+          {addTestProducts.isPending ? "Adding..." : "Test Data"}
+        </Button>
       </div>
 
       {/* Bulk Actions */}

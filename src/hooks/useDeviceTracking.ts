@@ -22,28 +22,33 @@ export function useDeviceTracking() {
         if (user) {
           const deviceInfo = generateDeviceFingerprint();
           
-          // Call edge function to track access and check blocks
-          const { data, error } = await supabase.functions.invoke('track-access', {
-            body: {
-              userId: user.id,
-              fingerprint: deviceInfo.fingerprint,
-              deviceType: deviceInfo.deviceType,
-              browser: deviceInfo.browser,
-              os: deviceInfo.os,
-            },
-          });
+          // Device tracking is optional - skip if function is not available
+          try {
+            const { data, error } = await supabase.functions.invoke('track-access', {
+              body: {
+                userId: user.id,
+                fingerprint: deviceInfo.fingerprint,
+                deviceType: deviceInfo.deviceType,
+                browser: deviceInfo.browser,
+                os: deviceInfo.os,
+              },
+            });
 
-          // Only process block if no network error
-          if (error && !error.message?.includes('network')) {
-            console.error('Device tracking error:', error);
-            return;
-          }
+            // Only process block if no network error
+            if (error && !error.message?.includes('network')) {
+              console.debug('Device tracking not available');
+              return;
+            }
 
-          // If blocked, sign out and redirect
-          if (data?.blocked) {
-            await supabase.auth.signOut();
-            window.location.href = '/';
-            alert('Your access has been restricted. Please contact support if you believe this is an error.');
+            // If blocked, sign out and redirect
+            if (data?.blocked) {
+              await supabase.auth.signOut();
+              window.location.href = '/';
+              alert('Your access has been restricted. Please contact support if you believe this is an error.');
+            }
+          } catch (trackingError) {
+            // Device tracking is optional, silently skip if not available
+            console.debug('Device tracking unavailable');
           }
         }
       } catch (error: any) {

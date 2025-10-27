@@ -36,14 +36,10 @@ export const useRealtimeOrders = (options: UseRealtimeOrdersOptions = {}) => {
         .from('orders')
         .select(`
           *,
-          merchants (business_name, address, phone),
-          addresses (street, city, state, zip_code),
-          couriers (full_name, phone, email, vehicle_type, current_lat, current_lng),
           order_items (
             quantity,
             price,
-            product_name,
-            products (name, image_url)
+            product_id
           )
         `)
         .order('created_at', { ascending: false })
@@ -54,7 +50,7 @@ export const useRealtimeOrders = (options: UseRealtimeOrdersOptions = {}) => {
       }
 
       const { data, error } = await query;
-      
+
       if (error) throw error;
       setOrders(data || []);
     } catch (error) {
@@ -62,7 +58,7 @@ export const useRealtimeOrders = (options: UseRealtimeOrdersOptions = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter?.join(',')]);
+  }, [statusFilter?.join(',')]) ;
 
   useEffect(() => {
     fetchOrders();

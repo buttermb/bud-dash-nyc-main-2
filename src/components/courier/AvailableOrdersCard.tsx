@@ -84,7 +84,6 @@ export default function AvailableOrdersCard({ courierId, isOnline }: { courierId
         .from('orders')
         .select('*')
         .eq('status', 'pending')
-        .is('courier_id', null)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -103,9 +102,8 @@ export default function AvailableOrdersCard({ courierId, isOnline }: { courierId
       const { error } = await supabase
         .from('orders')
         .update({
-          courier_id: courierId,
-          status: 'assigned',
-          assigned_at: new Date().toISOString()
+          status: 'processing',
+          updated_at: new Date().toISOString()
         })
         .eq('id', orderId)
         .is('courier_id', null); // Only if not already assigned
