@@ -343,58 +343,69 @@ const Checkout = () => {
         hasUserId: !!orderData.userId
       });
 
-      let response: any;
+      let responseData: any;
+      let statusCode: number = 500;
+
       try {
-        response = await supabase.functions.invoke('create-order', {
-          body: orderData
+        // Use fetch directly for better error handling
+        const functionUrl = `${supabase.functions.getURL().origin}/functions/v1/create-order`;
+
+        const session = await supabase.auth.getSession();
+        const authToken = session.data.session?.access_token;
+
+        const fetchResponse = await fetch(functionUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+          },
+          body: JSON.stringify(orderData)
         });
+
+        statusCode = fetchResponse.status;
+
+        try {
+          responseData = await fetchResponse.json();
+        } catch (parseError) {
+          console.error('Failed to parse response:', parseError);
+          responseData = { error: 'Invalid response from order service' };
+        }
+
+        console.log('Edge Function response:', {
+          statusCode,
+          responseData
+        });
+
+        // Handle error responses (any non-2xx status)
+        if (!fetchResponse.ok) {
+          const errorMessage = responseData?.error || `Order service returned error ${statusCode}`;
+          console.error('Order creation failed:', { statusCode, error: errorMessage });
+          throw new Error(errorMessage);
+        }
+
+        // Check for error in successful response
+        if (responseData?.error) {
+          console.error('Order creation error in response:', responseData.error);
+          throw new Error(responseData.error);
+        }
+
+        // Validate we got an orderId back
+        if (!responseData?.orderId) {
+          console.error('No orderId returned from Edge Function:', responseData);
+          throw new Error('Order created but no tracking ID returned');
+        }
+
       } catch (fnError: any) {
-        console.error('Edge Function invoke threw error:', {
-          name: fnError.name,
+        console.error('Edge Function call failed:', {
           message: fnError.message,
-          status: fnError.status,
-          context: fnError.context
+          statusCode,
+          error: fnError
         });
 
-        throw new Error(fnError.message || 'Failed to place order');
+        throw new Error(fnError.message || 'Failed to place order. Please try again.');
       }
 
-      console.log('Edge Function response:', {
-        hasError: !!response.error,
-        hasData: !!response.data,
-        error: response.error?.message,
-        data: response.data
-      });
-
-      // Check for error from the function call itself
-      if (response.error) {
-        console.error('Edge Function invocation error:', {
-          name: response.error.name,
-          message: response.error.message,
-          status: (response.error as any).status
-        });
-
-        throw new Error(response.error.message || 'Failed to place order');
-      }
-
-      const data = response.data;
-
-      // Check for error in the response data
-      if (!data) {
-        console.error('No data returned from Edge Function');
-        throw new Error('Order service error: empty response');
-      }
-
-      if (data.error) {
-        console.error('Order creation error in response:', data.error);
-        throw new Error(data.error);
-      }
-
-      // Validate we got an orderId back
-      if (!data.orderId) {
-        console.error('No orderId returned from Edge Function:', data);
-        throw new Error('Order created but no tracking ID returned');
-      }
+      const data = responseData;
 
       // Mark welcome discount as used if applied
       if (welcomeDiscount && user?.id) {
