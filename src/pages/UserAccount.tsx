@@ -49,9 +49,16 @@ export default function UserAccount() {
           .insert({
             user_id: user.id,
             full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || "User",
+            email: user.email,
             avatar_url: user.user_metadata?.avatar_url || null,
             is_verified: false,
             is_suspended: false,
+            account_status: "active",
+            trust_level: "new",
+            risk_score: 50,
+            total_orders: 0,
+            total_spent: 0,
+            id_verified: false,
           })
           .select()
           .single();
