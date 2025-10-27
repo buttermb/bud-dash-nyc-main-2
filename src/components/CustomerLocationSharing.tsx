@@ -59,15 +59,29 @@ export const CustomerLocationSharing = ({ orderId, onLocationShared }: CustomerL
       const updateInterval = setInterval(async () => {
         navigator.geolocation.getCurrentPosition(
           async (pos) => {
-            await supabase
-              .from("orders")
-              .update({
-                customer_lat: pos.coords.latitude,
-                customer_lng: pos.coords.longitude,
-                customer_location_accuracy: Math.round(pos.coords.accuracy),
-                customer_location_updated_at: new Date().toISOString(),
-              })
-              .eq("id", orderId);
+            try {
+              const { error } = await supabase
+                .from("orders")
+                .update({
+                  customer_lat: pos.coords.latitude,
+                  customer_lng: pos.coords.longitude,
+                  customer_location_accuracy: Math.round(pos.coords.accuracy),
+                  customer_location_updated_at: new Date().toISOString(),
+                })
+                .eq("id", orderId);
+
+              if (error) {
+                console.error("Failed to update location:", {
+                  message: error?.message || String(error),
+                  error: error
+                });
+              }
+            } catch (err: any) {
+              console.error("Location update error:", {
+                message: err?.message || String(err),
+                error: err
+              });
+            }
           },
           (error) => {
             // Handle GeolocationPositionError in periodic updates
