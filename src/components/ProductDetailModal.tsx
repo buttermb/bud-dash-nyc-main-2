@@ -166,9 +166,9 @@ export const ProductDetailModal = ({ product, open, onOpenChange, onAuthRequired
 
   const getCurrentPrice = () => {
     if (product.prices && typeof product.prices === 'object') {
-      return product.prices[selectedWeight] || product.price;
+      return product.prices[selectedWeight] || product.price || 0;
     }
-    return product.price;
+    return product.price || 0;
   };
 
   const getWeights = () => {
