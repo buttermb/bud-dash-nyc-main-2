@@ -358,12 +358,19 @@ const Checkout = () => {
           total: orderData.totalAmount
         });
 
+        // Validate data can be serialized before sending
+        try {
+          JSON.stringify(orderData);
+          console.log('Order data is JSON serializable');
+        } catch (serializeError) {
+          console.error('Order data is not JSON serializable:', serializeError);
+          throw new Error('Invalid order data - contains non-serializable values');
+        }
+
         // Use the Supabase client's built-in function invocation
+        // Important: Pass body as a plain object, not string
         const response = await supabase.functions.invoke('create-order', {
-          body: orderData,
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: orderData
         });
 
         console.log('Edge Function invoke response:', {
