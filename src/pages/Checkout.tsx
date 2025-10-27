@@ -374,27 +374,32 @@ const Checkout = () => {
           fullData: response.data
         });
 
-        // If there's an invocation error (network, timeout, etc)
+        // Handle both error cases: response.error OR response.data with error property
+        let hasError = false;
+        let errorMessage = '';
+
         if (response.error) {
-          console.error('Edge Function invocation error:', {
-            ...response.error,
-            context: (response.error as any).context
-          });
-          const errorMsg = response.error.message || 'Failed to place order';
-          throw new Error(errorMsg);
+          hasError = true;
+          errorMessage = response.error.message || 'Edge Function returned an error';
+          console.error('Edge Function invocation error:', response.error);
         }
 
         responseData = response.data;
 
-        // Check for error in the response data
         if (!responseData) {
           console.error('No data returned from Edge Function');
           throw new Error('Order service returned empty response');
         }
 
+        // Check if response has error field (server returned error response)
         if (responseData.error) {
+          hasError = true;
+          errorMessage = responseData.error;
           console.error('Order creation error in response:', responseData.error);
-          throw new Error(responseData.error);
+        }
+
+        if (hasError) {
+          throw new Error(errorMessage);
         }
 
         // Validate we got an orderId back
