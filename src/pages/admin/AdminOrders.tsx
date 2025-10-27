@@ -82,6 +82,9 @@ export default function AdminOrders() {
 
     setUpdating(true);
     try {
+      let updateSucceeded = false;
+
+      // Try edge function first
       const { error } = await supabase.functions.invoke('update-order-status', {
         body: {
           orderId,
@@ -90,33 +93,40 @@ export default function AdminOrders() {
         }
       });
 
-      if (error) {
-        console.error("Function error, trying direct update:", error);
-        // Fallback to direct update
+      if (!error) {
+        updateSucceeded = true;
+      } else {
+        console.error("Edge function error, attempting direct database update:", error);
+
+        // Fallback: Update directly in database
         const { error: directError } = await supabase
           .from('orders')
           .update({ status: newStatus })
           .eq('id', orderId);
-        
-        if (directError) throw directError;
+
+        if (directError) {
+          throw directError;
+        }
+        updateSucceeded = true;
       }
-      if (error) throw error;
 
-      toast({
-        title: '✓ Status updated',
-        description: `Order status changed to ${formatStatus(newStatus)}`
-      });
+      if (updateSucceeded) {
+        toast({
+          title: '✓ Status updated',
+          description: `Order status changed to ${formatStatus(newStatus)}`
+        });
 
-      await refetch();
-      
-      if (selectedOrder?.id === orderId) {
-        setShowDetailModal(false);
-        setSelectedOrder(null);
+        await refetch();
+
+        if (selectedOrder?.id === orderId) {
+          setShowDetailModal(false);
+          setSelectedOrder(null);
+        }
       }
     } catch (error: any) {
       toast({
         title: 'Failed to update status',
-        description: error.message,
+        description: error.message || 'An unexpected error occurred',
         variant: 'destructive'
       });
     } finally {
