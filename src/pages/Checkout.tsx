@@ -348,7 +348,8 @@ const Checkout = () => {
 
       try {
         // Use fetch directly for better error handling
-        const functionUrl = `${supabase.functions.getURL().origin}/functions/v1/create-order`;
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+        const functionUrl = `${supabaseUrl}/functions/v1/create-order`;
 
         const session = await supabase.auth.getSession();
         const authToken = session.data.session?.access_token;
