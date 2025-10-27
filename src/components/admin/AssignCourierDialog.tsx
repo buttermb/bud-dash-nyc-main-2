@@ -88,33 +88,20 @@ export const AssignCourierDialog = ({
 
     setAssigning(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error("Not authenticated");
-      }
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/assign-courier`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('assign-courier', {
+        body: {
           orderId,
           courierId: selectedCourierId,
-        }),
+        }
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to assign courier");
+      if (error) {
+        throw new Error(error?.message || "Failed to assign courier");
       }
 
       toast({
         title: "Success",
-        description: "Courier assigned successfully",
+        description: data?.message || "Courier assigned successfully",
       });
 
       onOpenChange(false);
