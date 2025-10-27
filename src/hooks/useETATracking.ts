@@ -39,9 +39,11 @@ export const useETATracking = (orderId: string | null) => {
           return;
         }
       } catch (functionError: any) {
+        const errorMsg = functionError?.message || String(functionError) || 'Unknown error';
+        const errorCode = functionError?.code || 'UNKNOWN';
         console.warn('ETA calculation via function failed, trying direct database query:', {
-          message: functionError?.message,
-          error: functionError
+          message: errorMsg,
+          code: errorCode
         });
 
         // Fallback: Load ETA directly from database
@@ -52,8 +54,12 @@ export const useETATracking = (orderId: string | null) => {
           .single();
 
         if (queryError) {
-          console.error('Failed to fetch ETA from database:', queryError);
-          throw new Error('Unable to calculate ETA');
+          const dbErrorMsg = queryError?.message || String(queryError) || 'Database query failed';
+          console.error('Failed to fetch ETA from database:', {
+            message: dbErrorMsg,
+            code: queryError?.code || 'DB_ERROR'
+          });
+          throw new Error(`Unable to calculate ETA: ${dbErrorMsg}`);
         }
 
         if (orderData?.eta_minutes) {
@@ -65,9 +71,12 @@ export const useETATracking = (orderId: string | null) => {
         }
       }
     } catch (error: any) {
+      const errorMsg = error?.message || String(error) || 'Unknown ETA calculation error';
+      const errorCode = error?.code || 'UNKNOWN';
       console.error('ETA calculation error:', {
-        message: error?.message || String(error),
-        error: error
+        message: errorMsg,
+        code: errorCode,
+        details: errorMsg
       });
 
       // Silent fail - ETA is optional
