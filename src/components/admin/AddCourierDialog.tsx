@@ -69,21 +69,28 @@ export const AddCourierDialog = ({ onSuccess }: { onSuccess: () => void }) => {
   const onSubmit = async (data: CourierFormData) => {
     setIsSubmitting(true);
     try {
+      console.log("Submitting courier form data:", data);
+
       const { data: responseData, error } = await supabase.functions.invoke('add-courier', {
         body: data
       });
 
+      console.log("Add courier response:", { responseData, error });
+
       if (error) {
         const errorMessage = error?.message || error?.error || "Failed to add courier";
+        console.error("Edge function error:", errorMessage);
         throw new Error(errorMessage);
       }
 
       if (!responseData?.success) {
-        throw new Error(responseData?.error || "Failed to add courier");
+        const errorMsg = responseData?.error || "Failed to add courier";
+        console.error("Response indicates failure:", errorMsg);
+        throw new Error(errorMsg);
       }
 
       toast({
-        title: "Success",
+        title: "✓ Success",
         description: responseData.message || "Courier added successfully",
       });
 
@@ -91,11 +98,12 @@ export const AddCourierDialog = ({ onSuccess }: { onSuccess: () => void }) => {
       setOpen(false);
       onSuccess();
     } catch (error: any) {
-      console.error("Failed to add courier:", error);
+      const errorMsg = error?.message || String(error) || "Failed to add courier";
+      console.error("Failed to add courier:", errorMsg);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to add courier",
+        description: errorMsg,
       });
     } finally {
       setIsSubmitting(false);
