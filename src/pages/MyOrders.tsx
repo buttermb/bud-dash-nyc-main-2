@@ -68,7 +68,6 @@ export default function MyOrders() {
       setOrders(data || []);
       haptics.light(); // Light feedback on successful refresh
     } catch (error) {
-      const { getErrorMessage } = await import("@/utils/errorHandling");
       console.error("Error fetching orders:", getErrorMessage(error));
       toast({
         title: "Error loading orders",
