@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { validateOrder } from '@/utils/realtimeValidation';
+import { getErrorMessage } from '@/utils/errorHandling';
 
 interface Order {
   id: string;
