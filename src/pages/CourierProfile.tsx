@@ -98,7 +98,7 @@ export default function CourierProfile() {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Phone</p>
-                <p className="font-medium text-gray-900">{courier.phone}</p>
+                <p className="font-medium text-gray-900">{courier?.phone || 'N/A'}</p>
               </div>
             </div>
           </div>
