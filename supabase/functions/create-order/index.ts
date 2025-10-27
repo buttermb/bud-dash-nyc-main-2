@@ -162,30 +162,42 @@ Deno.serve(async (req) => {
         })
     }
 
-    console.log('Order completed successfully:', order.id)
+    console.log('Order completed successfully:', { orderId: order.id })
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         orderId: order.id,
-        trackingCode: order.tracking_code 
+        trackingCode: order.tracking_code || null,
+        message: 'Order placed successfully'
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
+        status: 200
       }
     )
 
   } catch (error) {
-    console.error('Order creation failed:', error)
+    console.error('Order creation failed:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
+
     const errorMessage = error instanceof Error ? error.message : 'Failed to create order'
+
+    // Don't expose internal errors to client - provide generic message
+    const clientMessage = errorMessage.includes('relation') || errorMessage.includes('column')
+      ? 'Order service temporarily unavailable. Please try again.'
+      : errorMessage
+
     return new Response(
-      JSON.stringify({ 
-        error: errorMessage
+      JSON.stringify({
+        error: clientMessage,
+        code: 'ORDER_CREATION_FAILED'
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
+        status: 400
       }
     )
   }
