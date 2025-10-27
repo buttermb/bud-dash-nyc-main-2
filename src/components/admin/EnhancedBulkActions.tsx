@@ -64,7 +64,7 @@ export function EnhancedBulkActions({
     for (const id of selectedProducts) {
       const product = products.find((p) => p.id === id);
       if (product) {
-        const newPrice = Math.max(0.01, product.price * multiplier);
+        const newPrice = Math.max(0.01, (product.price || 0) * multiplier);
         await onIndividualUpdate(id, { price: parseFloat(newPrice.toFixed(2)) });
       }
     }
