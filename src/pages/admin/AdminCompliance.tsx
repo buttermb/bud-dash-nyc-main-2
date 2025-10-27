@@ -19,26 +19,43 @@ const AdminCompliance = () => {
 
   const fetchComplianceMetrics = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("admin-dashboard", {
-        body: { endpoint: "compliance" }
-      });
+      // Add timeout to prevent hanging edge function calls
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Edge Function timeout')), 5000)
+      );
 
-      if (error) {
-        console.error("Error fetching compliance:", error);
-        // Fallback - fetch basic metrics directly
-        const { count: pendingVerifications } = await supabase
-          .from('age_verifications')
-          .select('*', { count: 'exact', head: true })
-          .eq('verified', false);
-        
-        setMetrics({
-          pendingVerifications: pendingVerifications || 0,
-          verificationRate: 0,
-          complianceScore: 0,
-        });
-        return;
+      try {
+        const { data, error } = await Promise.race([
+          supabase.functions.invoke("admin-dashboard", {
+            body: { endpoint: "compliance" }
+          }),
+          timeoutPromise
+        ]) as any;
+
+        if (error) {
+          console.warn("Edge Function error, using fallback:", error?.message);
+          throw error;
+        }
+        if (data) {
+          setMetrics(data);
+          return;
+        }
+      } catch (functionError: any) {
+        console.warn("Edge Function unavailable, using fallback query:", functionError?.message);
+        // Silently fall back to direct database query
       }
-      setMetrics(data);
+
+      // Fallback - fetch basic metrics directly
+      const { count: pendingVerifications } = await supabase
+        .from('age_verifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('verified', false);
+
+      setMetrics({
+        pendingVerifications: pendingVerifications || 0,
+        verificationRate: 0,
+        complianceScore: 0,
+      });
     } catch (error) {
       console.error("Failed to fetch compliance metrics:", error);
     } finally {
