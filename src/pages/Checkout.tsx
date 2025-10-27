@@ -343,36 +343,50 @@ const Checkout = () => {
         hasUserId: !!orderData.userId
       });
 
-      const { data, error } = await supabase.functions.invoke('create-order', {
+      const response = await supabase.functions.invoke('create-order', {
         body: orderData
       });
 
+      console.log('Edge Function response:', {
+        hasError: !!response.error,
+        hasData: !!response.data,
+        error: response.error?.message,
+        data: response.data
+      });
+
       // Check for error from the function call itself
-      if (error) {
-        console.error('Edge Function error:', {
-          name: error.name,
-          message: error.message,
-          status: (error as any).status
+      if (response.error) {
+        console.error('Edge Function invocation error:', {
+          name: response.error.name,
+          message: response.error.message,
+          status: (response.error as any).status
         });
 
         // Provide user-friendly error messages based on error type
         let userMessage = 'Failed to place order. Please try again.';
 
-        if (error.name === 'FunctionsFetchError') {
+        if (response.error.name === 'FunctionsFetchError') {
           userMessage = 'Order service is temporarily unavailable. Please try again in a moment.';
-        } else if (error.message?.includes('timeout')) {
+        } else if (response.error.message?.includes('timeout')) {
           userMessage = 'Order processing took too long. Please try again.';
-        } else if (error.message) {
-          userMessage = error.message;
+        } else if (response.error.message) {
+          userMessage = response.error.message;
         }
 
         throw new Error(userMessage);
       }
 
+      const data = response.data;
+
       // Check for error in the response data
-      if (!data || data.error) {
-        console.error('Order creation error in response:', data?.error);
-        throw new Error(data?.error || 'Failed to create order');
+      if (!data) {
+        console.error('No data returned from Edge Function');
+        throw new Error('Order service error: empty response');
+      }
+
+      if (data.error) {
+        console.error('Order creation error in response:', data.error);
+        throw new Error(data.error);
       }
 
       // Validate we got an orderId back
