@@ -330,7 +330,7 @@ const AdminLiveMap = () => {
     const searchMatch = !searchQuery || 
       order.order_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      delivery.courier?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      delivery.courier?.id?.toLowerCase().includes(searchQuery.toLowerCase());
     
     return statusMatch && boroughMatch && searchMatch;
   });
