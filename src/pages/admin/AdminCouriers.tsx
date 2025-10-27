@@ -231,7 +231,7 @@ export default function AdminCouriers() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <p className="text-sm">{courier.phone}</p>
+                    <p className="text-sm">{courier?.phone || 'N/A'}</p>
                   </TableCell>
                   <TableCell>
                     <div>
