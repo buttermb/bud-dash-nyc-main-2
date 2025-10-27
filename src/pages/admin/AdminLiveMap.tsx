@@ -110,9 +110,9 @@ const AdminLiveMap = () => {
           order_items (
             id,
             product_id,
-            product_name,
             quantity,
-            price
+            price,
+            products (id, name, image_url)
           ),
           couriers (
             id,
