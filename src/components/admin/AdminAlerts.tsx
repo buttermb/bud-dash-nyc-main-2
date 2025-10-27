@@ -249,7 +249,7 @@ export function AdminAlerts() {
                       Order #{request.order.order_number}
                     </Badge>
                     <span className="text-sm font-medium">
-                      {request.courier.full_name}
+                      Courier {request.courier.id}
                     </span>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-1">
