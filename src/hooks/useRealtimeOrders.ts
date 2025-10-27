@@ -59,7 +59,7 @@ export const useRealtimeOrders = (options: UseRealtimeOrdersOptions = {}) => {
       if (error) throw error;
       setOrders(data || []);
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error('Error fetching orders:', getErrorMessage(error));
     } finally {
       setLoading(false);
     }
