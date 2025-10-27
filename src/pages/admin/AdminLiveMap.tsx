@@ -7,6 +7,7 @@ import { formatStatus, safeStatus } from "@/utils/stringHelpers";
 import { validateOrder } from "@/utils/realtimeValidation";
 import { productionLogger } from "@/utils/productionLogger";
 import { getErrorMessage } from "@/utils/errorHandling";
+import { useAdminCouriers } from "@/hooks/useAdminCouriers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -46,6 +47,7 @@ interface ActivityItem {
 const AdminLiveMap = () => {
   const { session } = useAdminAuth();
   const { toast } = useToast();
+  const { couriers } = useAdminCouriers();
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [stats, setStats] = useState<RealtimeStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,9 +62,11 @@ const AdminLiveMap = () => {
   const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
-  const [activeCouriers, setActiveCouriers] = useState<any[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Filter active couriers from the hook (is_online and is_active)
+  const activeCouriers = couriers.filter(c => c.is_online && c.is_active);
 
   const playNotificationSound = () => {
     if (soundEnabled && audioRef.current) {
@@ -81,24 +85,8 @@ const AdminLiveMap = () => {
     setActivityFeed(prev => [newActivity, ...prev.slice(0, 49)]);
   };
 
-  const fetchActiveCouriers = async () => {
-    try {
-      const { data: couriersData, error: couriersError } = await supabase
-        .from('couriers')
-        .select('*')
-        .eq('is_online', true)
-        .eq('is_active', true);
-
-      if (couriersError) {
-        console.error('Error fetching active couriers:', couriersError);
-        return;
-      }
-
-      setActiveCouriers(couriersData || []);
-    } catch (error) {
-      console.error('Error fetching active couriers:', error);
-    }
-  };
+  // fetchActiveCouriers is now handled by the useAdminCouriers hook
+  // The activeCouriers is automatically updated when courier data changes
 
   const fetchLiveDeliveries = async () => {
     try {
@@ -164,8 +152,7 @@ const AdminLiveMap = () => {
         addActivity('order', `New order received! Total active: ${deliveriesData.length}`, 'success');
       }
 
-      // Fetch active couriers
-      await fetchActiveCouriers();
+      // Active couriers are automatically updated via useAdminCouriers hook
     } catch (error) {
       console.error('Error fetching deliveries:', getErrorMessage(error));
       addActivity('alert', 'Failed to fetch deliveries', 'error');
