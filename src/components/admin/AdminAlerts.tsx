@@ -204,7 +204,7 @@ export function AdminAlerts() {
                     </span>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-1">
-                    <div>Phone: {anomaly.courier.phone}</div>
+                    <div>Phone: {anomaly.courier?.phone || 'N/A'}</div>
                     {anomaly.accuracy_meters && (
                       <div>Accuracy: {anomaly.accuracy_meters}m</div>
                     )}
