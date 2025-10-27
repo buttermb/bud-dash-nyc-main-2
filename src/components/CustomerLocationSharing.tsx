@@ -78,13 +78,28 @@ export const CustomerLocationSharing = ({ orderId, onLocationShared }: CustomerL
       // Store interval ID to clear later
       (window as any).__locationUpdateInterval = updateInterval;
     } catch (error: any) {
-      console.error("Failed to share location:", error);
+      // Handle GeolocationPositionError properly
+      let errorMessage = "Unable to access your location. Please check your browser settings.";
+      const errorCode = error?.code;
+
+      if (errorCode === 1) {
+        errorMessage = "Please enable location access in your browser settings to share your location";
+      } else if (errorCode === 2) {
+        errorMessage = "Network error: Unable to retrieve your location. Please check your connection.";
+      } else if (errorCode === 3) {
+        errorMessage = "Location request timed out. Please try again.";
+      }
+
+      console.error("Failed to share location:", {
+        message: errorMessage,
+        code: errorCode,
+        error: error
+      });
+
       toast({
         variant: "destructive",
         title: "Location Access Denied",
-        description: error.message === "User denied Geolocation"
-          ? "Please enable location access in your browser settings to share your location"
-          : "Unable to access your location. Please check your browser settings.",
+        description: errorMessage,
       });
     }
   };
