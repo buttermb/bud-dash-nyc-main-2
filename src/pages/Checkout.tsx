@@ -347,6 +347,14 @@ const Checkout = () => {
 
       try {
         console.log('Calling create-order via supabase.functions.invoke()');
+        console.log('Order data being sent:', {
+          userId: orderData.userId,
+          borough: orderData.deliveryBorough,
+          email: orderData.customerEmail ? '***' : 'missing',
+          phone: orderData.customerPhone ? '***' : 'missing',
+          itemCount: orderData.cartItems.length,
+          total: orderData.totalAmount
+        });
 
         // Use the Supabase client's built-in function invocation
         const response = await supabase.functions.invoke('create-order', {
@@ -360,12 +368,18 @@ const Checkout = () => {
           hasError: !!response.error,
           hasData: !!response.data,
           error: response.error?.message,
-          errorStatus: (response.error as any)?.status
+          errorStatus: (response.error as any)?.status,
+          errorContext: (response.error as any)?.context,
+          fullError: response.error,
+          fullData: response.data
         });
 
         // If there's an invocation error (network, timeout, etc)
         if (response.error) {
-          console.error('Edge Function invocation error:', response.error);
+          console.error('Edge Function invocation error:', {
+            ...response.error,
+            context: (response.error as any).context
+          });
           const errorMsg = response.error.message || 'Failed to place order';
           throw new Error(errorMsg);
         }
@@ -392,7 +406,8 @@ const Checkout = () => {
       } catch (fnError: any) {
         console.error('Edge Function call failed:', {
           message: fnError.message,
-          error: fnError
+          error: fnError,
+          stack: fnError.stack
         });
 
         throw new Error(fnError.message || 'Failed to place order. Please try again.');
