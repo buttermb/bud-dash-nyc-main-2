@@ -73,8 +73,26 @@ export function useAdminOrders() {
 
       setOrders(enrichedOrders);
     } catch (err: any) {
-      console.error('Error fetching orders:', err);
-      setError(err.message || 'Failed to fetch orders');
+      let errorMsg = 'Failed to fetch orders';
+
+      if (typeof err === 'object' && err !== null) {
+        if ('message' in err) {
+          errorMsg = err.message;
+        } else if ('error' in err) {
+          errorMsg = String(err.error);
+        } else {
+          try {
+            errorMsg = JSON.stringify(err);
+          } catch {
+            errorMsg = Object.prototype.toString.call(err);
+          }
+        }
+      } else if (err) {
+        errorMsg = String(err);
+      }
+
+      console.error('Error fetching orders:', errorMsg);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
