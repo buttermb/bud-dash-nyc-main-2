@@ -122,7 +122,16 @@ export default function UserAccount() {
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
-      <h1 className="text-3xl font-bold mb-6">My Account</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">My Account</h1>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/")}
+          className="gap-2"
+        >
+          ← Back to Home
+        </Button>
+      </div>
 
       {/* Account Status Alert */}
       {profile.account_status !== "active" && (
