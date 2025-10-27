@@ -41,10 +41,11 @@ export const useRealtimeOrders = (options: UseRealtimeOrdersOptions = {}) => {
           addresses (street, city, state, zip_code),
           couriers (full_name, phone, email, vehicle_type, current_lat, current_lng),
           order_items (
+            id,
             quantity,
             price,
-            product_name,
-            products (name, image_url)
+            product_id,
+            products (id, name, image_url)
           )
         `)
         .order('created_at', { ascending: false })
