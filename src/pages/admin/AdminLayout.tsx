@@ -99,59 +99,59 @@ const AdminLayout = () => {
             
             {/* Header Actions */}
             <div className="flex items-center gap-2 ml-auto md:ml-0">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Dialog>
+              <Dialog>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <DialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-9 w-9">
                           <Keyboard className="h-4 w-4" />
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Keyboard Shortcuts</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-3 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Search</span>
-                            <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘K</kbd>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Dashboard</span>
-                            <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧D</kbd>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Orders</span>
-                            <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧O</kbd>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Products</span>
-                            <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧P</kbd>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Users</span>
-                            <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧U</kbd>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Couriers</span>
-                            <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧C</kbd>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Live Map</span>
-                            <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧M</kbd>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Live Orders</span>
-                            <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧L</kbd>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </TooltipTrigger>
-                  <TooltipContent>Keyboard Shortcuts</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                    </TooltipTrigger>
+                    <TooltipContent>Keyboard Shortcuts</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Keyboard Shortcuts</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Search</span>
+                      <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘K</kbd>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Dashboard</span>
+                      <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧D</kbd>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Orders</span>
+                      <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧O</kbd>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Products</span>
+                      <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧P</kbd>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Users</span>
+                      <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧U</kbd>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Couriers</span>
+                      <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧C</kbd>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Live Map</span>
+                      <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧M</kbd>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Live Orders</span>
+                      <kbd className="px-2 py-1 bg-muted rounded text-xs">⌘⇧L</kbd>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
               
               <AdminNotificationCenter />
               <ThemeToggle />
