@@ -109,16 +109,21 @@ export const CustomerLocationSharing = ({ orderId, onLocationShared }: CustomerL
       // Store interval ID to clear later
       (window as any).__locationUpdateInterval = updateInterval;
     } catch (error: any) {
-      // Handle GeolocationPositionError properly
-      let errorMessage = "Unable to access your location. Please check your browser settings.";
+      // Handle both GeolocationPositionError and Supabase errors
+      let errorMessage = "Unable to share location. Please try again.";
       const errorCode = error?.code;
+      const errorMsg = error?.message || String(error);
 
+      // Check if it's a GeolocationPositionError
       if (errorCode === 1) {
         errorMessage = "Please enable location access in your browser settings to share your location";
       } else if (errorCode === 2) {
         errorMessage = "Network error: Unable to retrieve your location. Please check your connection.";
       } else if (errorCode === 3) {
         errorMessage = "Location request timed out. Please try again.";
+      } else if (errorMsg && errorMsg !== "null" && errorMsg !== "undefined") {
+        // It's likely a Supabase error
+        errorMessage = errorMsg;
       }
 
       console.error("Failed to share location:", {
@@ -129,7 +134,7 @@ export const CustomerLocationSharing = ({ orderId, onLocationShared }: CustomerL
 
       toast({
         variant: "destructive",
-        title: "Location Access Denied",
+        title: "Location Sharing Failed",
         description: errorMessage,
       });
     }
