@@ -13,7 +13,10 @@ export const useETATracking = (orderId: string | null) => {
   const [loading, setLoading] = useState(false);
 
   const calculateETA = async (courierLat?: number, courierLng?: number) => {
-    if (!orderId) return;
+    if (!orderId) {
+      console.debug('calculateETA: No orderId provided, skipping');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -21,6 +24,7 @@ export const useETATracking = (orderId: string | null) => {
       try {
         // Only invoke ETA function if we have courier coordinates
         if (courierLat !== undefined && courierLng !== undefined && courierLat !== null && courierLng !== null) {
+          console.debug(`Calculating ETA via edge function for order ${orderId}`);
           const { data, error } = await supabase.functions.invoke('calculate-eta', {
             body: {
               orderId,
@@ -35,6 +39,7 @@ export const useETATracking = (orderId: string | null) => {
           }
 
           if (data?.success) {
+            console.debug(`ETA calculated successfully: ${data.eta_minutes} minutes`);
             setEta({
               eta_minutes: data.eta_minutes || 0,
               distance_miles: parseFloat(data.distance_miles || '0'),
@@ -47,14 +52,16 @@ export const useETATracking = (orderId: string | null) => {
           }
         } else {
           // If no courier coordinates, skip edge function and go straight to database
+          console.debug('No courier coordinates available, skipping edge function');
           throw new Error('Courier coordinates not available');
         }
       } catch (functionError: any) {
         const errorMsg = functionError?.message || String(functionError) || 'Unknown error';
         const errorCode = functionError?.code || 'UNKNOWN';
-        console.warn('ETA calculation via function failed, trying direct database query:', errorMsg);
+        console.warn(`ETA calculation via function failed for order ${orderId}:`, errorMsg);
 
         // Fallback: Load ETA directly from database
+        console.debug(`Attempting to fetch ETA from database for order ${orderId}`);
         const { data: orderData, error: queryError } = await supabase
           .from('orders')
           .select('eta_minutes, eta_updated_at')
@@ -69,21 +76,28 @@ export const useETATracking = (orderId: string | null) => {
             } else if ('error' in queryError) {
               dbErrorMsg = String(queryError.error);
             } else {
-              dbErrorMsg = JSON.stringify(queryError);
+              try {
+                dbErrorMsg = JSON.stringify(queryError);
+              } catch {
+                dbErrorMsg = Object.prototype.toString.call(queryError);
+              }
             }
           } else {
             dbErrorMsg = String(queryError);
           }
-          console.error('Failed to fetch ETA from database:', dbErrorMsg);
+          console.error(`Failed to fetch ETA from database for order ${orderId}:`, dbErrorMsg);
           throw new Error(`Unable to calculate ETA: ${dbErrorMsg}`);
         }
 
         if (orderData?.eta_minutes) {
+          console.debug(`ETA loaded from database: ${orderData.eta_minutes} minutes`);
           setEta({
             eta_minutes: orderData.eta_minutes,
             distance_miles: 0,
             last_updated: orderData.eta_updated_at || new Date().toISOString()
           });
+        } else {
+          console.debug(`Order ${orderId} has no ETA data yet`);
         }
       }
     } catch (error: any) {
@@ -92,12 +106,16 @@ export const useETATracking = (orderId: string | null) => {
         if ('message' in error) {
           errorMsg = error.message;
         } else {
-          errorMsg = JSON.stringify(error);
+          try {
+            errorMsg = JSON.stringify(error);
+          } catch {
+            errorMsg = Object.prototype.toString.call(error);
+          }
         }
       } else if (error) {
         errorMsg = String(error);
       }
-      console.error('ETA calculation error:', errorMsg);
+      console.error(`ETA calculation error for order ${orderId}:`, errorMsg);
 
       // Silent fail - ETA is optional
       setEta(null);
