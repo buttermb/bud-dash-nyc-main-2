@@ -29,7 +29,7 @@ export function useAdminOrders() {
       setLoading(true);
       setError(null);
 
-      // Query orders with left join to couriers
+      // Query orders with all relevant fields
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select(`
@@ -38,17 +38,31 @@ export function useAdminOrders() {
           status,
           total_amount,
           courier_id,
-          created_at
+          created_at,
+          customer_name,
+          customer_phone,
+          customer_email,
+          delivery_address,
+          tracking_code
         `)
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (ordersError) throw ordersError;
 
+      if (!ordersData || ordersData.length === 0) {
+        setOrders([]);
+        return;
+      }
+
       // If there are courier_ids, fetch courier details
       let couriersMap: Record<string, any> = {};
-      const courierIds = [...new Set(ordersData?.map(o => o.courier_id).filter(Boolean) as string[])];
-      
+      const courierIds = [...new Set(
+        ordersData
+          .map(o => (o as any).courier_id)
+          .filter((id): id is string => id !== null && id !== undefined)
+      )];
+
       if (courierIds.length > 0) {
         const { data: couriersData, error: couriersError } = await supabase
           .from('couriers')
@@ -66,9 +80,9 @@ export function useAdminOrders() {
       }
 
       // Combine orders with courier data
-      const enrichedOrders = (ordersData || []).map(order => ({
+      const enrichedOrders = ordersData.map(order => ({
         ...order,
-        courier: order.courier_id ? couriersMap[order.courier_id] : undefined
+        courier: (order as any).courier_id ? couriersMap[(order as any).courier_id] : undefined
       }));
 
       setOrders(enrichedOrders);
