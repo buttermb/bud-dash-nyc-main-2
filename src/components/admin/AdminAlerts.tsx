@@ -98,7 +98,7 @@ export function AdminAlerts() {
       .from("override_requests")
       .select(`
         *,
-        courier:couriers(full_name, phone),
+        courier:couriers(id, phone),
         order:orders(order_number, delivery_address)
       `)
       .eq("status", "pending")
