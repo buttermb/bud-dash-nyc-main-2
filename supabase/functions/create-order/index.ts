@@ -43,9 +43,29 @@ Deno.serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     const authHeader = req.headers.get('Authorization');
 
+    console.log('Edge Function received request:', {
+      method: req.method,
+      hasAuthHeader: !!authHeader,
+      supabaseUrlSet: !!supabaseUrl,
+      anonKeySet: !!supabaseAnonKey
+    });
+
     if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('Missing Supabase environment variables');
-      throw new Error('Service configuration error');
+      console.error('Missing Supabase environment variables:', {
+        supabaseUrl: supabaseUrl ? 'present' : 'missing',
+        supabaseAnonKey: supabaseAnonKey ? 'present' : 'missing'
+      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Service configuration error. Please contact support.',
+          code: 'CONFIG_ERROR'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        }
+      );
     }
 
     const supabaseClient = createClient(
