@@ -109,44 +109,69 @@ export const useETATracking = (orderId: string | null) => {
   useEffect(() => {
     if (!orderId) return;
 
-    // Subscribe to courier location updates for this order
-    const channel = supabase
-      .channel(`eta-tracking-${orderId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders',
-          filter: `id=eq.${orderId}`
-        },
-        (payload) => {
-          const updated = payload.new as any;
-          if (updated.eta_minutes) {
-            setEta(prev => ({
-              ...prev,
-              eta_minutes: updated.eta_minutes,
-              last_updated: updated.eta_updated_at || new Date().toISOString()
-            } as ETAData));
+    let channel: any = null;
+    let subscriptionFailed = false;
+
+    try {
+      // Subscribe to courier location updates for this order
+      channel = supabase
+        .channel(`eta-tracking-${orderId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'orders',
+            filter: `id=eq.${orderId}`
+          },
+          (payload) => {
+            const updated = payload.new as any;
+            if (updated.eta_minutes !== undefined && updated.eta_minutes !== null) {
+              setEta(prev => ({
+                ...prev,
+                eta_minutes: updated.eta_minutes,
+                last_updated: updated.eta_updated_at || new Date().toISOString()
+              } as ETAData));
+            }
           }
-        }
-      )
-      .on('system', { event: 'CHANNEL_ERROR' }, () => {
-        console.error('ETA tracking channel error');
-      })
-      .on('system', { event: 'TIMED_OUT' }, () => {
-        console.warn('ETA tracking channel timed out, will retry');
-      })
-      .subscribe();
+        )
+        .on('system', { event: 'CHANNEL_ERROR' }, (err) => {
+          subscriptionFailed = true;
+          const errorMsg = err?.error?.message || err?.message || String(err) || 'Unknown subscription error';
+          console.error('ETA tracking channel error:', errorMsg);
+        })
+        .on('system', { event: 'TIMED_OUT' }, () => {
+          console.warn('ETA tracking channel timed out, will fall back to polling');
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.debug('ETA tracking subscription established');
+          } else if (status === 'CHANNEL_ERROR') {
+            subscriptionFailed = true;
+            console.error('ETA tracking subscription failed to connect');
+          } else if (status === 'CLOSED') {
+            console.debug('ETA tracking subscription closed');
+          }
+        });
+    } catch (subscriptionError: any) {
+      subscriptionFailed = true;
+      const errorMsg = subscriptionError?.message || String(subscriptionError) || 'Failed to subscribe to ETA updates';
+      console.error('Error setting up ETA tracking subscription:', errorMsg);
+    }
 
     // Initial ETA calculation
     calculateETA();
 
     // Recalculate every 5 minutes (reduced frequency for better performance)
+    // This acts as a fallback if realtime subscription fails
     const interval = setInterval(() => calculateETA(), 300000);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel).catch((err: any) => {
+          console.debug('Error removing ETA tracking channel:', err?.message || String(err));
+        });
+      }
       clearInterval(interval);
     };
   }, [orderId]);
