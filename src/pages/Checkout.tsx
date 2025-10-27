@@ -422,13 +422,14 @@ const Checkout = () => {
         }
 
       } catch (fnError: any) {
+        const errMsg = fnError?.message || String(fnError) || 'Unknown error';
         console.error('Edge Function call failed:', {
-          message: fnError.message,
+          message: errMsg,
           error: fnError,
-          stack: fnError.stack
+          stack: fnError?.stack
         });
 
-        throw new Error(fnError.message || 'Failed to place order. Please try again.');
+        throw new Error(errMsg);
       }
 
       const data = responseData;
