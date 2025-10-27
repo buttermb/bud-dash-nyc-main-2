@@ -32,17 +32,29 @@ export default function IDVerificationUpload() {
   };
 
   const uploadFile = async (file: File, path: string) => {
-    const { data, error } = await supabase.storage
-      .from("id-verifications")
-      .upload(path, file, { upsert: true });
+    try {
+      const { data, error } = await supabase.storage
+        .from("id-verifications")
+        .upload(path, file, { upsert: true });
 
-    if (error) throw error;
-    
-    const { data: urlData } = supabase.storage
-      .from("id-verifications")
-      .getPublicUrl(path);
-    
-    return urlData.publicUrl;
+      if (error) {
+        console.error("Upload error:", error);
+        throw new Error(error.message || "Failed to upload file");
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("id-verifications")
+        .getPublicUrl(path);
+
+      if (!urlData?.publicUrl) {
+        throw new Error("Failed to get public URL for uploaded file");
+      }
+
+      return urlData.publicUrl;
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      throw new Error(err?.message || "Failed to upload file");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
