@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from '@/hooks/use-toast';
 import { Loader2, RefreshCw, AlertTriangle, MapPin, Clock } from 'lucide-react';
 import { getNeighborhoodFromZip, getRiskColor, getRiskLabel, getRiskTextColor } from '@/utils/neighborhoods';
-import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
+import { useAdminOrders } from '@/hooks/useAdminOrders';
 import { OrderMap } from '@/components/admin/OrderMap';
 import { CourierDispatchPanel } from '@/components/admin/CourierDispatchPanel';
 import { useETATracking } from '@/hooks/useETATracking';
@@ -71,8 +71,16 @@ export default function AdminOrders() {
   const [updating, setUpdating] = useState(false);
   const [showMap, setShowMap] = useState(true);
 
-  const { orders, loading, refetch } = useRealtimeOrders({
-    statusFilter: statusFilter === 'all' ? undefined : [statusFilter]
+  const { orders: allOrders, loading, error, refetch } = useAdminOrders();
+
+  // Filter by status and search
+  const orders = allOrders.filter(order => {
+    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const matchesSearch = !searchTerm ||
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.courier?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.courier?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesStatus && matchesSearch;
   });
 
   const { eta } = useETATracking(selectedOrder?.id || null);
