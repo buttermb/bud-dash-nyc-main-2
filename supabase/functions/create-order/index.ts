@@ -132,6 +132,9 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Generate unique tracking code
+    const trackingCode = `NYM${Date.now().toString().slice(-6)}${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+
     // Create order
     const orderPayload = {
       user_id: orderData.userId || null,
@@ -145,6 +148,7 @@ Deno.serve(async (req) => {
       scheduled_delivery_time: orderData.scheduledDeliveryTime || null,
       delivery_notes: orderData.deliveryNotes || null,
       status: 'pending',
+      tracking_code: trackingCode,
       pickup_lat: orderData.pickupLat || null,
       pickup_lng: orderData.pickupLng || null,
       dropoff_lat: orderData.dropoffLat || null,
