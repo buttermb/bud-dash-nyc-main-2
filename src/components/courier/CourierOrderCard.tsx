@@ -92,7 +92,7 @@ export const CourierOrderCard = memo(({
           <div className="space-y-1">
             {order.order_items.slice(0, 2).map((item, idx) => (
               <div key={idx} className="text-muted-foreground">
-                {item.quantity}x {item.product_name}
+                {item.quantity}x {item.products?.name || item.product_name || 'Product'}
               </div>
             ))}
             {order.order_items.length > 2 && (
