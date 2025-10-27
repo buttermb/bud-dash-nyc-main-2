@@ -12,49 +12,59 @@ export function useDeviceTracking() {
         }
 
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
+
         // Don't log out on network errors
         if (authError && authError.message?.includes('network')) {
           console.log('Network error in device tracking, skipping');
           return;
         }
-        
+
         if (user) {
           const deviceInfo = generateDeviceFingerprint();
-          
-          // Call edge function to track access and check blocks
-          const { data, error } = await supabase.functions.invoke('track-access', {
-            body: {
-              userId: user.id,
-              fingerprint: deviceInfo.fingerprint,
-              deviceType: deviceInfo.deviceType,
-              browser: deviceInfo.browser,
-              os: deviceInfo.os,
-            },
-          });
 
-          // Only process block if no network error
-          if (error && !error.message?.includes('network')) {
-            console.error('Device tracking error:', error);
-            return;
-          }
+          try {
+            // Call edge function to track access and check blocks
+            const { data, error } = await Promise.race([
+              supabase.functions.invoke('track-access', {
+                body: {
+                  userId: user.id,
+                  fingerprint: deviceInfo.fingerprint,
+                  deviceType: deviceInfo.deviceType,
+                  browser: deviceInfo.browser,
+                  os: deviceInfo.os,
+                },
+              }),
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Track-access timeout')), 5000)
+              )
+            ]);
 
-          // If blocked, sign out and redirect
-          if (data?.blocked) {
-            await supabase.auth.signOut();
-            window.location.href = '/';
-            alert('Your access has been restricted. Please contact support if you believe this is an error.');
+            // Only process block if no network error
+            if (error && !error.message?.includes('network')) {
+              console.warn('Device tracking error (non-critical):', error);
+              return;
+            }
+
+            // If blocked, sign out and redirect
+            if (data?.blocked) {
+              await supabase.auth.signOut();
+              window.location.href = '/';
+              alert('Your access has been restricted. Please contact support if you believe this is an error.');
+            }
+          } catch (functionError: any) {
+            // Gracefully handle edge function errors without blocking app
+            console.warn('Edge function unavailable (non-critical):', functionError?.message);
+            // App continues normally - tracking is optional
           }
         }
       } catch (error: any) {
-        // Don't disrupt user experience on network errors
-        if (!error?.message?.includes('network')) {
-          console.error("Error tracking device:", error);
-        }
+        // Don't disrupt user experience - device tracking is a non-critical feature
+        console.warn("Device tracking error (non-critical):", error?.message);
       }
     };
 
-    trackDevice();
+    // Run tracking asynchronously to prevent blocking app load
+    const timeoutId = setTimeout(trackDevice, 100);
 
     // Track on auth state changes (but not on network changes)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -64,6 +74,9 @@ export function useDeviceTracking() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 }
