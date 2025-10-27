@@ -23,39 +23,47 @@ export async function callAdminFunction<T = any>({
 }: FunctionCallOptions): Promise<{ data: T | null; error: Error | null }> {
   try {
     const headers: Record<string, string> = {};
-    
+
     // Add authorization header if session exists
     if (session?.access_token) {
       headers.Authorization = `Bearer ${session.access_token}`;
     }
 
-    const { data, error } = await supabase.functions.invoke(functionName, {
-      body,
-      headers,
-    });
+    // Add timeout to prevent hanging edge function calls (10 second timeout)
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Edge Function request timeout')), 10000)
+    );
+
+    const { data, error } = await Promise.race([
+      supabase.functions.invoke(functionName, {
+        body,
+        headers,
+      }),
+      timeoutPromise
+    ]) as any;
 
     if (error) {
       console.error(`Error calling ${functionName}:`, error);
-      
+
       if (showToast) {
         toast.error(errorMessage, {
           description: error.message || 'Please try again later',
         });
       }
-      
+
       return { data: null, error };
     }
 
     return { data: data as T, error: null };
   } catch (error: any) {
     console.error(`Exception calling ${functionName}:`, error);
-    
+
     if (showToast) {
       toast.error(errorMessage, {
         description: error.message || 'An unexpected error occurred',
       });
     }
-    
+
     return { data: null, error };
   }
 }
