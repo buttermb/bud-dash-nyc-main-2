@@ -19,7 +19,7 @@ interface GPSAnomaly {
   resolved: boolean;
   admin_notified: boolean;
   courier: {
-    full_name: string;
+    id: string;
     phone: string;
   };
 }
