@@ -347,7 +347,7 @@ const AdminLiveMap = () => {
       eta_minutes: order.eta_minutes,
       courier_id: d.courier?.id,
       courier: d.courier ? {
-        full_name: d.courier.full_name,
+        id: d.courier.id,
         current_lat: d.courier.current_lat,
         current_lng: d.courier.current_lng,
         vehicle_type: d.courier.vehicle_type
