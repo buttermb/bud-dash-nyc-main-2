@@ -474,29 +474,30 @@ const Checkout = () => {
       
       navigate(`/order-confirmation?orderId=${data.orderId}`);
     } catch (error: any) {
+      const errMsg = error?.message || String(error) || 'Unknown error occurred';
       console.error('Order placement error:', {
-        message: error.message,
+        message: errMsg,
         error: error,
-        stack: error.stack
+        stack: error?.stack
       });
 
       // Provide user-friendly error messages based on the error
-      let errorMessage = "Failed to place order";
+      let errorMessage = errMsg || "Failed to place order";
 
-      if (error.message?.includes('Email')) {
+      if (errorMessage?.includes('Email')) {
         errorMessage = "Please provide a valid email address";
-      } else if (error.message?.includes('Phone')) {
+      } else if (errorMessage?.includes('Phone')) {
         errorMessage = "Please provide a valid phone number";
-      } else if (error.message?.includes('Order service error')) {
+      } else if (errorMessage?.includes('Order service error')) {
         errorMessage = "Connection error: Please check your internet and try again";
-      } else if (error.message?.includes('delivery address')) {
+      } else if (errorMessage?.includes('delivery address')) {
         errorMessage = "Please provide a valid delivery address";
-      } else if (error.message?.includes('Cart is empty')) {
+      } else if (errorMessage?.includes('Cart is empty')) {
         errorMessage = "Your cart is empty. Please add items before checkout";
-      } else if (error.message?.includes('tracking ID')) {
+      } else if (errorMessage?.includes('tracking ID')) {
         errorMessage = "Order was created but confirmation failed. Please check your orders";
-      } else {
-        errorMessage = error.message || "Failed to place order. Please try again";
+      } else if (errorMessage?.includes('user_id')) {
+        errorMessage = "User authentication error. Please try logging in again.";
       }
 
       toast.error(errorMessage);
@@ -658,7 +659,7 @@ const Checkout = () => {
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-2xl">🌉</span>
                         {borough === "brooklyn" && (
-                          <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">✓</span>
+                          <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">���</span>
                         )}
                       </div>
                       <h4 className="font-semibold mb-1">Brooklyn</h4>
