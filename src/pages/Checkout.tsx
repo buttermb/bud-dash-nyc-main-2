@@ -321,46 +321,37 @@ const Checkout = () => {
         }))
       };
 
-      // Call optimized edge function with timeout
-      let data, error;
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      // Call optimized edge function
+      console.log('Calling create-order Edge Function with data:', {
+        itemCount: orderData.cartItems.length,
+        total: orderData.totalAmount,
+        hasUserId: !!orderData.userId
+      });
 
-        const response = await Promise.race([
-          supabase.functions.invoke('create-order', {
-            body: orderData
-          }),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Order processing timeout - please try again')), 30000)
-          )
-        ]);
-
-        clearTimeout(timeoutId);
-        ({ data, error } = response as any);
-
-      } catch (invokeError: any) {
-        console.error('Edge Function invoke error:', {
-          name: invokeError.name,
-          message: invokeError.message,
-          status: (invokeError as any).status,
-          details: invokeError
-        });
-        throw new Error(invokeError.message || 'Unable to reach order service. Please try again.');
-      }
+      const { data, error } = await supabase.functions.invoke('create-order', {
+        body: orderData
+      });
 
       // Check for error from the function call itself
       if (error) {
-        console.error('Edge Function returned error:', {
+        console.error('Edge Function error:', {
           name: error.name,
           message: error.message,
-          status: (error as any).status,
-          details: error
+          status: (error as any).status
         });
-        const errorMsg = error.message || 'Order service error';
-        throw new Error(errorMsg.includes('FunctionsFetchError')
-          ? 'Order service is temporarily unavailable. Please try again in a moment.'
-          : errorMsg);
+
+        // Provide user-friendly error messages based on error type
+        let userMessage = 'Failed to place order. Please try again.';
+
+        if (error.name === 'FunctionsFetchError') {
+          userMessage = 'Order service is temporarily unavailable. Please try again in a moment.';
+        } else if (error.message?.includes('timeout')) {
+          userMessage = 'Order processing took too long. Please try again.';
+        } else if (error.message) {
+          userMessage = error.message;
+        }
+
+        throw new Error(userMessage);
       }
 
       // Check for error in the response data
@@ -973,7 +964,7 @@ const Checkout = () => {
                 {paymentMethod === "cash" && (
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <p className="text-sm text-muted-foreground">
-                      💡 Please have exact change ready. Our couriers will verify your ID (must be 21+) before completing delivery.
+                      ��� Please have exact change ready. Our couriers will verify your ID (must be 21+) before completing delivery.
                     </p>
                   </div>
                 )}
