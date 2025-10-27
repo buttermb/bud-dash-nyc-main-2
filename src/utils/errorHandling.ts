@@ -139,6 +139,51 @@ export const safeError = (...args: any[]) => {
 };
 
 /**
+ * Extract meaningful error message from error object
+ * Prevents logging "[object Object]" and returns actual error details
+ */
+export const getErrorMessage = (error: unknown): string => {
+  if (error === null || error === undefined) {
+    return 'Unknown error occurred';
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return error.message || error.toString();
+  }
+
+  if (typeof error === 'object') {
+    // Supabase error objects
+    if ('message' in error) {
+      return (error as any).message;
+    }
+    if ('error_description' in error) {
+      return (error as any).error_description;
+    }
+    if ('error' in error) {
+      const errorValue = (error as any).error;
+      if (typeof errorValue === 'string') return errorValue;
+      if (errorValue instanceof Error) return errorValue.message;
+      if (errorValue && typeof errorValue === 'object' && 'message' in errorValue) {
+        return (errorValue as any).message;
+      }
+    }
+    // Try to stringify and extract something useful
+    try {
+      const str = JSON.stringify(error);
+      return str.length < 200 ? str : 'An error occurred';
+    } catch {
+      return 'An error occurred';
+    }
+  }
+
+  return String(error);
+};
+
+/**
  * Retry function with exponential backoff
  */
 export const retryWithBackoff = async <T>(
