@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { useWishlist } from "@/hooks/useWishlist";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -121,4 +121,3 @@ const Wishlist = () => {
 };
 
 export default Wishlist;
-
