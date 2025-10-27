@@ -122,6 +122,12 @@ export const useETATracking = (orderId: string | null) => {
           }
         }
       )
+      .on('system', { event: 'CHANNEL_ERROR' }, () => {
+        console.error('ETA tracking channel error');
+      })
+      .on('system', { event: 'TIMED_OUT' }, () => {
+        console.warn('ETA tracking channel timed out, will retry');
+      })
       .subscribe();
 
     // Initial ETA calculation
