@@ -63,24 +63,53 @@ const ProductDetail = () => {
     mutationFn: async () => {
       if (!user) throw new Error("Not authenticated");
 
-      const { data: existing } = await supabase
-        .from("cart_items")
-        .select()
-        .eq("user_id", user.id)
-        .eq("product_id", id!)
-        .maybeSingle();
+      try {
+        // Try to insert first
+        const { data, error: insertError } = await supabase
+          .from("cart_items")
+          .insert({
+            user_id: user.id,
+            product_id: id!,
+            quantity,
+            selected_weight: 'unit' // Add default weight
+          })
+          .select()
+          .single();
 
-      if (existing) {
-        const { error } = await supabase
-          .from("cart_items")
-          .update({ quantity: existing.quantity + quantity })
-          .eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("cart_items")
-          .insert({ user_id: user.id, product_id: id!, quantity });
-        if (error) throw error;
+        if (insertError) {
+          // If unique constraint violation, update instead
+          if (insertError.code === '23505' || insertError.message?.includes('unique')) {
+            console.log('Item already in cart, updating quantity');
+
+            const { data: existing } = await supabase
+              .from("cart_items")
+              .select()
+              .eq("user_id", user.id)
+              .eq("product_id", id!)
+              .single();
+
+            if (existing) {
+              const { error: updateError } = await supabase
+                .from("cart_items")
+                .update({ quantity: existing.quantity + quantity })
+                .eq("id", existing.id);
+
+              if (updateError) {
+                console.error('Update error:', updateError);
+                throw new Error(`Failed to update cart: ${updateError.message}`);
+              }
+            } else {
+              throw new Error('Item not found in cart');
+            }
+          } else {
+            console.error('Insert error:', insertError);
+            throw new Error(`Failed to add to cart: ${insertError.message}`);
+          }
+        }
+        return data;
+      } catch (err: any) {
+        console.error('Add to cart error:', err);
+        throw err;
       }
     },
     onMutate: () => {
@@ -95,8 +124,13 @@ const ProductDetail = () => {
       setTimeout(() => setAddedToCart(false), 2000);
       setIsAdding(false);
     },
-    onError: () => {
-      toast({ title: "Failed to add to cart", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('Cart mutation error:', error);
+      toast({
+        title: "Failed to add to cart",
+        description: error?.message || "Please try again.",
+        variant: "destructive"
+      });
       haptics.error(); // Error haptic
       setIsAdding(false);
     },
