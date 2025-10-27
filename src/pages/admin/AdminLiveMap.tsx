@@ -6,6 +6,7 @@ import { AdminAlerts } from "@/components/admin/AdminAlerts";
 import { formatStatus, safeStatus } from "@/utils/stringHelpers";
 import { validateOrder } from "@/utils/realtimeValidation";
 import { productionLogger } from "@/utils/productionLogger";
+import { getErrorMessage } from "@/utils/errorHandling";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
