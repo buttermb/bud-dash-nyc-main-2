@@ -67,10 +67,19 @@ export default function CustomerTrackingPage() {
     try {
       console.log("Fetching order with tracking code:", code);
 
-      // Query orders table directly
+      // Query orders table with related data
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
+        .select(`
+          *,
+          order_items(
+            id,
+            product_id,
+            quantity,
+            price,
+            product:products(id, name, image_url)
+          )
+        `)
         .eq("tracking_code", code)
         .single();
 
