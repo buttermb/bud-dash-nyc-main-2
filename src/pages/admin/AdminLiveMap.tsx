@@ -295,8 +295,8 @@ const AdminLiveMap = () => {
           (payload) => {
             try {
               const courier = payload.new as any;
-              if (courier?.is_online && !payload.old?.is_online && courier.full_name) {
-                addActivity('courier', `${courier.full_name} is now online`, 'success');
+              if (courier?.is_online && !payload.old?.is_online && courier.id) {
+                addActivity('courier', `Courier ${courier.id} is now online`, 'success');
               }
               fetchLiveDeliveries();
             } catch (error) {
