@@ -82,26 +82,34 @@ Deno.serve(async (req) => {
 
     // Validate email and phone for guest orders
     if (!orderData.userId) {
+      console.log('Validating guest order contact info:', {
+        hasEmail: !!orderData.customerEmail,
+        hasPhone: !!orderData.customerPhone,
+        customerName: orderData.customerName
+      })
+
       // Guest checkout - email and phone are required
       if (!orderData.customerEmail || !orderData.customerEmail.trim()) {
-        throw new Error('Email address is required')
+        throw new Error('Email address is required for guest checkout')
       }
 
       // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(orderData.customerEmail)) {
-        throw new Error('Please enter a valid email address')
+        throw new Error('Invalid email address format')
       }
 
       if (!orderData.customerPhone || !orderData.customerPhone.trim()) {
-        throw new Error('Phone number is required')
+        throw new Error('Phone number is required for guest checkout')
       }
 
       // Basic phone validation (at least 10 digits)
       const phoneDigits = orderData.customerPhone.replace(/\D/g, '')
       if (phoneDigits.length < 10) {
-        throw new Error('Please enter a valid phone number (at least 10 digits)')
+        throw new Error('Phone number must contain at least 10 digits')
       }
+
+      console.log('Guest contact info validated successfully')
     }
 
     // Get merchant location data if not provided
