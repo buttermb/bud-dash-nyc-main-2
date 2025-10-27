@@ -168,7 +168,7 @@ const AdminLiveMap = () => {
       // Fetch active couriers
       await fetchActiveCouriers();
     } catch (error) {
-      console.error('Error fetching deliveries:', error);
+      console.error('Error fetching deliveries:', getErrorMessage(error));
       addActivity('alert', 'Failed to fetch deliveries', 'error');
     } finally {
       setLoading(false);
