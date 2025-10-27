@@ -31,11 +31,45 @@ export default function UserAccount() {
         return;
       }
 
-      const { data: profileData } = await supabase
+      let profileData = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .single()
+        .then(res => res.data)
+        .catch(err => {
+          console.log("Profile not found, creating new profile");
+          return null;
+        });
+
+      // If profile doesn't exist, create one
+      if (!profileData) {
+        const { data: newProfile, error } = await supabase
+          .from("profiles")
+          .insert({
+            user_id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || "",
+            avatar_url: user.user_metadata?.avatar_url || null,
+            account_status: "active",
+            trust_level: "new",
+            total_orders: 0,
+            total_spending: 0,
+            risk_score: 0,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error creating profile:", error);
+          toast.error("Failed to create account profile");
+          setLoading(false);
+          return;
+        }
+
+        profileData = newProfile;
+        toast.success("Profile created successfully!");
+      }
 
       const { data: ordersData } = await supabase
         .from("orders")
