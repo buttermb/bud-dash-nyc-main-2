@@ -128,7 +128,7 @@ const AdminLiveMap = () => {
         .order('created_at', { ascending: false });
 
       if (ordersError) {
-        console.error('Error fetching orders:', ordersError);
+        console.error('Error fetching orders:', getErrorMessage(ordersError));
         throw ordersError;
       }
       
