@@ -200,7 +200,7 @@ export function AdminAlerts() {
                       {getAnomalyLabel(anomaly.anomaly_type)}
                     </Badge>
                     <span className="text-sm font-medium">
-                      {anomaly.courier.full_name}
+                      Courier {anomaly.courier.id}
                     </span>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-1">
