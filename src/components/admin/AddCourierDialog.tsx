@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { UserPlus, Loader2 } from "lucide-react";
 
 const courierSchema = z.object({
