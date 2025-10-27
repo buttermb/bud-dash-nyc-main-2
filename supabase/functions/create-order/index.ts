@@ -129,17 +129,26 @@ Deno.serve(async (req) => {
       product_id: item.productId,
       quantity: item.quantity,
       price: item.price,
-      product_name: item.productName,
     }))
 
-    const { error: itemsError } = await supabaseClient
+    console.log('Inserting order items:', { orderId: order.id, itemCount: orderItems.length })
+
+    const { data: insertedItems, error: itemsError } = await supabaseClient
       .from('order_items')
       .insert(orderItems)
+      .select()
 
     if (itemsError) {
-      console.error('Order items error:', itemsError)
-      // Order was created, so log error but don't fail completely
-      console.error('Order items insertion failed, but order exists:', order.id)
+      console.error('Order items error:', {
+        message: itemsError.message,
+        code: itemsError.code,
+        details: itemsError.details,
+        hint: itemsError.hint
+      })
+      // Still return success since order was created, but log the error
+      console.warn('Order items insertion failed for order:', order.id, '- customer will need to contact support')
+    } else {
+      console.log('Order items inserted successfully:', { count: insertedItems?.length || 0 })
     }
 
     // Clear cart in background (non-blocking)
