@@ -159,8 +159,9 @@ export const useETATracking = (orderId: string | null) => {
       console.error('Error setting up ETA tracking subscription:', errorMsg);
     }
 
-    // Initial ETA calculation
-    calculateETA();
+    // Initial ETA calculation - only if we have coordinates
+    // Otherwise just set up the realtime listener
+    // calculateETA(); // Skip initial calc if no courier location available
 
     // Recalculate every 5 minutes (reduced frequency for better performance)
     // This acts as a fallback if realtime subscription fails
